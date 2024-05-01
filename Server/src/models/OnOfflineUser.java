@@ -1,11 +1,13 @@
 package models;
 
+import services.ClientMonitor;
+
 public class OnOfflineUser {
-    User user=null;
+    ClientMonitor user=null;
     boolean isonline=false;
-    public OnOfflineUser(User user) {
+    public OnOfflineUser(ClientMonitor c) {
         this.user = user;
-        this.isonline=false;
+        this.isonline=true;
     }
 
 }
