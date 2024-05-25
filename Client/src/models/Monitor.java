@@ -43,7 +43,7 @@ public class Monitor extends UnicastRemoteObject implements ClientMonitor, Seria
     public synchronized void propose(Topic t){
         Scanner sc = new Scanner(System.in);
         System.out.println("What do think about ? : "+t.getIdTopic());
-        float op = sc.nextFloat();
+        double op = Double.parseDouble(sc.nextLine());
         this.user.addOpinion(new OpinionTopic(this.user,t,op));
         System.out.printf("Your opinion %.2f on %s is saved ! ",this.user.getOpinion(t).getOx(),t.getIdTopic());
     }
