@@ -53,11 +53,11 @@ public class Client {
         username = scanner.nextLine();
         System.out.print("Enter your birthday (format DD/MM/YYYY): ");
         birthday = new Date(scanner.nextLine());
-        System.out.print("Enter your function (1 REGULAR_USER,\n" +
-                "  2  INFLUENCER,\n" +
-                "  3  CRITICAL_THINKER,\n" +
-                "  4  PROPOSER,\n" +
-                "  4  CONSENSUS_FINDER,) : ");
+        System.out.print("Enter your function (1 REGULAR_USER," +
+                "  2  INFLUENCER," +
+                "  3  CRITICAL_THINKER," +
+                "  4  PROPOSER," +
+                "  5  CONSENSUS_FINDER ) : ");
         int functionChoice = scanner.nextInt();
         UserType userType = UserType.REGULAR_USER; // Default
 
@@ -91,39 +91,46 @@ public class Client {
         stub.addListener(monitor);
     }
     public void proposer() throws RemoteException{
-        if (this.user.getUserType() != UserType.PROPOSER) {
-            System.err.println("You are not a proposer User.");
-            return;
-        }
+        new Thread(() -> {
+            try {
+                if (this.user.getUserType() != UserType.PROPOSER) {
+                    System.err.println("You are not a proposer User.");
+                    return;
+                }
 
-        Scanner scanner = new Scanner(System.in);
-        System.err.print("Topic : ");
-        String topic = scanner.nextLine();
-        scanner.close(); // N'oubliez pas de fermer le scanner
+                Scanner scanner = new Scanner(System.in);
+                System.err.print("Topic : ");
+                String topic = scanner.nextLine();
+                scanner.close(); // N'oubliez pas de fermer le scanner
 
-        HashMap<String, ClientMonitor> map = (HashMap<String, ClientMonitor>) this.stub.getUsers();
+                HashMap<String, ClientMonitor> map = (HashMap<String, ClientMonitor>) this.stub.getUsers();
 
-        // Création d'une liste de CompletableFuture pour chaque proposition
-        List<CompletableFuture<Void>> futures = map.entrySet().stream().filter(user-> {
-                    try {
-                        return (user.getValue().getUser().getUserType()!=UserType.PROPOSER);
-                    } catch (RemoteException e) {
-                        throw new RuntimeException(e);
-                    }
-                })
-                .map(user -> CompletableFuture.runAsync(() -> {
-                    try {
+                // Création d'une liste de CompletableFuture pour chaque proposition
+                List<CompletableFuture<Void>> futures = map.entrySet().stream().filter(user-> {
+                            try {
+                                return (user.getValue().getUser().getUserType()!=UserType.PROPOSER);
+                            } catch (RemoteException e) {
+                                throw new RuntimeException(e);
+                            }
+                        })
+                        .map(user -> CompletableFuture.runAsync(() -> {
+                            try {
 
-                        user.getValue().propose(new Topic(topic));
-                    } catch (RemoteException e) {
-                        throw new RuntimeException(e);
-                    }
-                }))
-                .toList();
+                                user.getValue().propose(new Topic(topic));
+                            } catch (RemoteException e) {
+                                throw new RuntimeException(e);
+                            }
+                        }))
+                        .toList();
 
-        // Attendre la complétion de toutes les futures
-        CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
-        System.out.println("All proposals have been sent and processed.");
+                // Attendre la complétion de toutes les futures
+                CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
+                System.out.println("All proposals have been sent and processed.");
+            } catch (RemoteException e) {
+                System.err.println("RemoteException during propose: " + e.getMessage());
+            }
+        }).start();
+        System.out.println("done.");
 
     }
 
