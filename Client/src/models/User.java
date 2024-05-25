@@ -5,14 +5,24 @@ import java.util.*;
 public class User implements Serializable {
     private String username;
     private Date bday;
+    private UserType userType;
     private HashMap<String ,OpinionTopic> opinions;
     private HashMap<String ,Double> influenceDegree;
 
-    public User(String username, Date bday) {
+    public User(String username, Date bday, UserType userType) {
         this.username = username;
         this.bday = bday;
         this.opinions = new HashMap<>();
+        this.userType = userType;
         this.influenceDegree = new HashMap<>();
+
+    }
+    public UserType getUserType() {
+        return userType;
+    }
+
+    public void setUserType(UserType userType) {
+        this.userType = userType;
     }
     public boolean isFirstInteraction(User user){
         return !this.influenceDegree.containsKey(user.getUsername());
