@@ -4,7 +4,6 @@ import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
-
 import java.util.stream.Collectors;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
@@ -26,23 +25,7 @@ public class Client {
         try {
             Client client = new Client();
             client.connect();
-            java.io.Console console = System.console();
-            String unT = console.readLine("Enter a topic a sov: ");
-            OpinionTopic c = new OpinionTopic(client.user,new Topic(unT),1);
-            client.user.addOpinion(c);
-            client.user.displayOpinions();
-            //client.sendOpinionTo(c,"koceila1");
-            client.proposer();
-            client.cmdfollow();
-            if(client.user.getUserType()==UserType.INFLUENCER){
-                console.readLine("Enter to next: ");
-                client.diffuserOP();
-            }
-            OpinionTopic c = new OpinionTopic(client.user,new Topic("is the Raja CA the best club in the world ?"),1);
-            client.user.addOpinion(c);
-            client.user.displayOpinions();
-            client.sendOpinionTo(c,"koceila1");
-            client.findPairsAndMakeThemTalk(c.getTopic());
+
             //client.proposer();
 
 
@@ -68,13 +51,13 @@ public class Client {
         HashMap<String, OpinionTopic> map1 = this.user.getOpinions();
         System.out.println("Connected users");
         for (String username: map.keySet()){
-            System.out.println(STR."\{username} is connected");
+            System.out.println(username+" is connected");
         }
         System.out.print("Enter username to send opinion to: ");
         String username = scanner.nextLine();
         System.out.println("Your topics");
         for (String topic: map1.keySet()){
-            System.out.println(STR."\{topic} is connected");
+            System.out.println(topic+" is connected");
         }
         System.out.print("Enter topic ID: ");
         String topicId = scanner.nextLine();
@@ -149,7 +132,7 @@ public class Client {
             ShowMenuInfluencer();
         }
         else if(this.user.getUserType() ==UserType.CRITICAL_THINKER){
-            ShowMenuCriticalThinker();
+            showMenuRegularUser();
         }
         else if(this.user.getUserType() ==UserType.CONSENSUS_FINDER){
             ShowMenuConsesusFinder();
@@ -187,7 +170,7 @@ public class Client {
                 switch (choice) {
                     case 1:
                         //InfluenceMethode1
-                        System.out.println("InfluenceMethode1");
+                        diffuserOP();
                         break;
                     case 2:
                         //InfluenceMethode2
@@ -305,7 +288,7 @@ public class Client {
                     break;
                 case 4:
                     //followSomeOne()
-                    System.out.println("followSomeOne()");
+                    cmdfollow();
                     break;
 
                 case 5:
@@ -343,9 +326,9 @@ public int displayMenuAndGetChoiceInfulencer(){
         Scanner scanner = new Scanner(System.in);
         int choice = -1;
         if ((this.user.getUserType() != UserType.REGULAR_USER)&& (this.user.getUserType() != UserType.PROPOSER) && (this.user.getUserType() != UserType.CRITICAL_THINKER) && (this.user.getUserType() != UserType.CONSENSUS_FINDER)) {
-            System.out.println("1. InfluencerMethode1");
-            System.out.println("2. InfluencerMethode2");
-            System.out.println("3. InfluencerMethode3");
+            System.out.println("1. Diffuse an opinion !");
+            System.out.println("2. Add opinion !");
+            System.out.println("3. Display opinion !");
             System.out.println("4. InfluencerMethode4");
 
             System.out.println("5. Exit");
@@ -487,7 +470,7 @@ public int displayMenuAndGetChoiceInfulencer(){
             if(infs.contains(Topic)){
                 for(String follower: this.user.getFollowrs()){
                     ClientMonitor tempM=this.stub.getClientMonitor(follower);
-                    tempM.sendOpinion(this.user.getOpinion(new Topic(Topic)));
+                    tempM.sendOpinion(this.user.getOpinion(new Topic(Topic)),this.monitor);
                 }
                 break;
             }
