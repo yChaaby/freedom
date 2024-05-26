@@ -12,7 +12,7 @@ public class Client2 {
     private User user;
     public static void main(String[] args) {
         try {
-            User thisuser = new User("koceila1",new Date("21/10/1945"), UserType.CRITICAL_THINKER);
+            User thisuser = new User("koceila1",new Date("21/10/1945"), UserType.REGULAR_USER);
             Monitor monitor = new Monitor(thisuser);
             //System.out.println("tapez le username d'un utilisateur : ");
             //Scanner sc = new Scanner(System.in);

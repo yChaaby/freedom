@@ -34,4 +34,13 @@ public class Server implements UserRemote{
     public Map<String, ClientMonitor> getUsers() throws RemoteException {
         return users;
     }
+
+    public List<ClientMonitor> getClientMonitors() throws RemoteException {
+        List<ClientMonitor> myListMonitors = new ArrayList<>();
+        for(Map.Entry<String,ClientMonitor> entry : users.entrySet())
+        {
+            myListMonitors.add(entry.getValue());
+        }
+        return myListMonitors;
+    }
 }

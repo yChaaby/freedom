@@ -5,11 +5,11 @@ import services.ClientMonitor;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 import java.io.Serializable ;
+import java.util.Random;
 import java.util.Scanner;
 
 public class Monitor extends UnicastRemoteObject implements ClientMonitor, Serializable {
-    private final Object lock = new Object();
-    private User user;
+    User user;
     public Monitor(User user) throws RemoteException{
     this.user=user;
     }
@@ -73,10 +73,29 @@ public class Monitor extends UnicastRemoteObject implements ClientMonitor, Seria
         System.out.println(msg);
     }
 
+    public void addOpinion(OpinionTopic op) throws RemoteException{
+        this.user.getOpinions().put(op.getTopic().getIdTopic(), op);
+    }
+
     public double requestProof(){
         Scanner scanner = new Scanner(System.in);
         System.err.print("What's your proof? : ");
         double proof = Double.parseDouble(scanner.nextLine());
         return proof;
+    }
+
+    public double answer_the_call() throws RemoteException{
+        Scanner scanner = new Scanner(System.in);
+        System.err.print("Are you going to answer this call? [Choose a number between 0 and 1]: ");
+        double answer_call = Double.parseDouble(scanner.nextLine());
+        return answer_call;
+
+    }
+
+    public int accepts_communication(String username) throws RemoteException {
+        Scanner scanner = new Scanner(System.in);
+        System.err.print(this.user.getUsername() + ", Would you like to chat with " + username + "?" + "[0 to refuse or 1 to accept ] :");
+        int answer_call = (int) Double.parseDouble(scanner.nextLine());
+        return answer_call;
     }
 }

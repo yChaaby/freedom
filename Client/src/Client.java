@@ -1,17 +1,20 @@
 import java.rmi.NotBoundException;
-import java.rmi.Remote;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
-import java.util.stream.Collectors;
-
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import models.*;
 import services.ClientMonitor;
 import services.UserRemote;
 
-public class Client {
+public class Client
+{
     public User user;
     public Monitor monitor;
     public UserRemote stub;
@@ -23,6 +26,7 @@ public class Client {
             client.user.addOpinion(c);
             client.user.displayOpinions();
             client.sendOpinionTo(c,"koceila1");
+            client.findPairsAndMakeThemTalk(c.getTopic());
             //client.proposer();
             //ClientMonitor receiver = (ClientMonitor) client.stub.getClientMonitor("koceila1");
             //receiver.displayMessage("Dima Dima RAJA");
@@ -35,8 +39,6 @@ public class Client {
     }
     public void sendOpinionTo(OpinionTopic op, String username) throws RemoteException {
         ClientMonitor receiver = (ClientMonitor) this.stub.getClientMonitor(username);
-        // Depuis le client, j'exécute les fonctions du moniteur destinataire :)
-
         receiver.sendOpinion(op,this.monitor);
     }
     public void addOpinion(){
@@ -97,14 +99,57 @@ public class Client {
             System.err.println("You are not a consensus finder. ");
             return;
         }
-        // Je recupère tous les moniteurs du réseau :)
-        HashMap<String, ClientMonitor> users = (HashMap<String, ClientMonitor>) this.stub.getUsers();
+        // J'ai récupéré tous les monitors existants dans le serveur :)
+        List<ClientMonitor> myClientMonitors = this.stub.getClientMonitors();
+        List<OpinionTopic> opinionTopics = new ArrayList<>();
 
+        // Nous avons tous les users qui ont une opinion sur le topic :)
+        for(ClientMonitor m : myClientMonitors) {
+            opinionTopics.add(m.getUser().getOpinion(topic));
+        }
 
+        for(OpinionTopic o : opinionTopics)
+            for(OpinionTopic op : opinionTopics)
+            {
+                if(!o.equals(op)) {
+                    if((o.getUser().getUserType() != UserType.CONSENSUS_FINDER) && (op.getUser().getUserType() != UserType.CONSENSUS_FINDER))
+                    {
+                        // On récupére les deux monitors :
+                        ClientMonitor c1 = this.stub.getClientMonitor(o.getUser().getUsername());
+                        ClientMonitor c2 = this.stub.getClientMonitor(op.getUser().getUsername());
 
+                        System.out.println("1---------> " + o.getOx() + " AND " + op.getOx());
+                        /*c1.getUser().addOpinion(new OpinionTopic(c1.getUser(),topic,0.5));
+                        c2.getUser().addOpinion(new OpinionTopic(c2.getUser(),topic,0.5));
+                        System.out.println("2---------> " + o.getOx() + " AND " + op.getOx());*/
 
+                        double answer_call_c1 = c1.answer_the_call();
+                        double answer_call_c2 = c2.answer_the_call();
+
+                        // Vérifions si c1 & c2 ont répondu à l'appel :)
+                        if(answer_call_c1 >= 0.5 && answer_call_c2 >= 0.5) {
+                            // Vérifions s'ils acceptent la communication :)
+                            if(c1.accepts_communication(c2.getUser().getUsername()) == 1 && c2.accepts_communication(c1.getUser().getUsername()) == 1){
+                                double OA = o.getOx();
+                                double OB = op.getOx();
+                                double averageOpinion = (OA + OB) / 2;
+                                c1.addOpinion(new OpinionTopic(c1.getUser(),topic,averageOpinion));
+                                c2.addOpinion(new OpinionTopic(c2.getUser(),topic,averageOpinion));
+                                c1.displayMessage("My new opinion on [" + topic.getIdTopic() + "] : " + c1.getUser().getOpinion(topic).getOx());
+                                c2.displayMessage("My new opinion on [" + topic.getIdTopic() + "] : " + c2.getUser().getOpinion(topic).getOx());
+                                return;
+                            }
+                            else
+                                System.out.println("Communication not accepted between " + c1.getUser().getUsername() + " and " + c2.getUser().getUsername());
+                        }
+                        else
+                            System.out.println("Call not answered by " + (answer_call_c1 < 0.5 ? c1.getUser().getUsername() : "") + (answer_call_c2 < 0.5 ? " and " + c2.getUser().getUsername() : ""));
+                    }
+                }
+                else
+                    continue;
+            }
     }
-
 
     // Cette méthode va être implementé uniquement par le Proposer :)
     public void proposer() throws RemoteException{
@@ -148,8 +193,9 @@ public class Client {
             }
         }).start();
         System.out.println("done.");
-
     }
 
 
+
 }
+

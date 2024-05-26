@@ -14,4 +14,7 @@ public interface ClientMonitor extends Remote {
     public void sendOpinion(OpinionTopic op, ClientMonitor clientMonitor) throws RemoteException;
     public void propose(Topic t)throws RemoteException;
     public double requestProof() throws RemoteException;
+    public double answer_the_call() throws RemoteException;
+    public int accepts_communication(String username) throws RemoteException;
+    public void addOpinion(OpinionTopic op) throws RemoteException;
 }
