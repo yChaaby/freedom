@@ -14,6 +14,14 @@ public class OpinionTopic implements Serializable, Remote {
         this.ox = ox;
     }
 
+    @Override
+    public String toString() {
+        return "OpinionTopic{" +
+                ", topic=" + topic.getIdTopic() +
+                ", ox=" + ox +
+                '}';
+    }
+
     public User getUser() {
         return user;
     }

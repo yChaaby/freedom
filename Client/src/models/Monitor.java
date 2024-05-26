@@ -1,26 +1,40 @@
 package models;
-
 import services.ClientMonitor;
-
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 import java.io.Serializable ;
 import java.util.Random;
 import java.util.Scanner;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class Monitor extends UnicastRemoteObject implements ClientMonitor, Serializable {
-    User user;
+
+    private User user;
+    private final Lock lock = new ReentrantLock();
+
     public Monitor(User user) throws RemoteException{
     this.user=user;
     }
     public Monitor() throws RemoteException {}
-
+    @Override
     public User getUser() {
         return user;
     }
-
     @Override
+    public synchronized void addFollower(String username) throws RemoteException {
+        lock.lock();
+        if (this.user.getUserType()==UserType.INFLUENCER){
+            this.getUser().addFollower(username);
+            System.out.println(username+" is following you ;-)");
+        }
+        lock.unlock();
+    }
+    @Override
+
     public synchronized void sendOpinion(OpinionTopic op, ClientMonitor clientMonitor) throws RemoteException {
+        this.lock.lock();
+
        if(this.user.isFirstInteraction(op.getUser())){
            this.user.addInfluenceDegree(op.getUser().getUsername(),Math.random());
        }
@@ -50,8 +64,10 @@ public class Monitor extends UnicastRemoteObject implements ClientMonitor, Seria
        double OB = this.user.getOpinion(op.getTopic()).getOx();
        double newOB = OB + (OA - OB ) * Iab;
        this.user.addOpinion(new OpinionTopic(this.user,op.getTopic(),newOB));
-       this.user.displayOpinions();
+       System.out.println("your receive op :"+this.user.getOpinion(op.getTopic()).toString());
+       this.lock.unlock();
     }
+
 
 
     public void setUser(User user) throws RemoteException{
@@ -59,13 +75,16 @@ public class Monitor extends UnicastRemoteObject implements ClientMonitor, Seria
     }
 
     @Override
-    public synchronized void propose(Topic t)
-    {
+
+    public synchronized void propose(Topic t){
+        this.lock.lock();
+
         Scanner sc = new Scanner(System.in);
         System.out.println("What do think about ? : "+ t.getIdTopic());
         double op = Double.parseDouble(sc.nextLine());
         this.user.addOpinion(new OpinionTopic(this.user,t,op));
         System.out.printf("Your opinion %.2f on %s is saved ! ",this.user.getOpinion(t).getOx(),t.getIdTopic());
+        this.lock.unlock();
     }
 
     @Override

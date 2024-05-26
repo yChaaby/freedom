@@ -13,6 +13,14 @@ public class OpinionTopic implements Serializable {
         this.ox = ox;
     }
 
+    @Override
+    public String toString() {
+        return "OpinionTopic{" +
+                ", topic=" + topic.getIdTopic() +
+                ", ox=" + ox +
+                '}';
+    }
+
     public User getUser() {
         return user;
     }

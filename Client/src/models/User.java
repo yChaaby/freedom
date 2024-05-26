@@ -10,17 +10,25 @@ public class User  implements Serializable, Remote {
     private UserType userType;
     private HashMap<String ,OpinionTopic> opinions;
     private HashMap<String ,Double> influenceDegree;
+    private List<String> followrs;
+
+    public List<String> getFollowrs() {
+        return followrs;
+    }
 
     public User(String username, Date bday, UserType userType) throws RemoteException {
         this.username = username;
         this.bday = bday;
-        this.opinions = new HashMap<>();
         this.userType = userType;
+        this.opinions = new HashMap<>();
         this.influenceDegree = new HashMap<>();
-
+        this.followrs = new ArrayList<>();
     }
     public UserType getUserType() {
         return userType;
+    }
+    public void addFollower(String follower) {
+        followrs.add(follower);
     }
 
     public void setUserType(UserType userType) {
@@ -50,13 +58,12 @@ public class User  implements Serializable, Remote {
     public void displayOpinions() {
         HashMap<String,OpinionTopic> map = this.opinions;
         if (map.isEmpty()) {
-            System.out.println("The map is empty.");
+            System.out.println("The map is empty, you can add some opinions !");
             return;
         }
-
-        System.out.println("HashMap Contents:");
+        System.out.println("Opinions Contents :");
         for (Map.Entry<String, OpinionTopic> entry : map.entrySet()) {
-            System.out.println("Key: " + entry.getKey() + ", Value: " + entry.getValue().getOx());
+            System.out.println("Topic: " + entry.getKey() + ", Opinion: " + entry.getValue().getOx());
         }
     }
 
