@@ -44,7 +44,7 @@ public class Monitor extends UnicastRemoteObject implements ClientMonitor, Seria
        }
 
        //  am I a CRITICAL_THINKER ?
-        if(this.user.getUserType() == UserType.CRITICAL_THINKER)
+        if(this.user.getUserType() == UserType.CRITICAL_THINKER && op.getUser().getUserType()!=UserType.INFLUENCER)
         {
             this.user.displayOpinions();
             System.out.println("A proof? : ");
@@ -58,13 +58,14 @@ public class Monitor extends UnicastRemoteObject implements ClientMonitor, Seria
                 return;
             }
         }
-        System.out.println("Proof accepted :)");
-       double Iab = this.user.getInfluenceDegree(op.getUser());
-       double OA = op.getOx();
-       double OB = this.user.getOpinion(op.getTopic()).getOx();
-       double newOB = OB + (OA - OB ) * Iab;
-       this.user.addOpinion(new OpinionTopic(this.user,op.getTopic(),newOB));
-       System.out.println("your receive op :"+this.user.getOpinion(op.getTopic()).toString());
+        if(this.user.getUserType()==UserType.CRITICAL_THINKER && op.getUser().getUserType()!= UserType.INFLUENCER){
+            double Iab = this.user.getInfluenceDegree(op.getUser());
+            double OA = op.getOx();
+            double OB = this.user.getOpinion(op.getTopic()).getOx();
+            double newOB = OB + (OA - OB ) * Iab;
+            this.user.addOpinion(new OpinionTopic(this.user,op.getTopic(),newOB));
+            System.out.println("your receive op :"+this.user.getOpinion(op.getTopic()).toString());
+        }
        this.lock.unlock();
     }
 
@@ -78,7 +79,6 @@ public class Monitor extends UnicastRemoteObject implements ClientMonitor, Seria
 
     public synchronized void propose(Topic t){
         this.lock.lock();
-
         Scanner sc = new Scanner(System.in);
         System.out.println("What do think about ? : "+ t.getIdTopic());
         double op = Double.parseDouble(sc.nextLine());
@@ -99,22 +99,19 @@ public class Monitor extends UnicastRemoteObject implements ClientMonitor, Seria
     public double requestProof(){
         Scanner scanner = new Scanner(System.in);
         System.err.print("What's your proof? : ");
-        double proof = Double.parseDouble(scanner.nextLine());
-        return proof;
+        return Double.parseDouble(scanner.nextLine());
     }
 
     public double answer_the_call() throws RemoteException{
         Scanner scanner = new Scanner(System.in);
         System.err.print("Are you going to answer this call? [Choose a number between 0 and 1]: ");
-        double answer_call = Double.parseDouble(scanner.nextLine());
-        return answer_call;
+        return Double.parseDouble(scanner.nextLine());
 
     }
 
     public int accepts_communication(String username) throws RemoteException {
         Scanner scanner = new Scanner(System.in);
         System.err.print(this.user.getUsername() + ", Would you like to chat with " + username + "?" + "[0 to refuse or 1 to accept ] :");
-        int answer_call = (int) Double.parseDouble(scanner.nextLine());
-        return answer_call;
+        return (int) Double.parseDouble(scanner.nextLine());
     }
 }

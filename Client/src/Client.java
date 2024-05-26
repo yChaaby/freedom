@@ -487,6 +487,9 @@ public int displayMenuAndGetChoiceInfulencer(){
         }
         // J'ai récupéré tous les monitors existants dans le serveur :)
         List<ClientMonitor> myClientMonitors = this.stub.getClientMonitors();
+        if(myClientMonitors.size() < 2)
+            return;
+
         List<OpinionTopic> opinionTopics = new ArrayList<>();
 
         // Nous avons tous les users qui ont une opinion sur le topic :)
@@ -504,16 +507,8 @@ public int displayMenuAndGetChoiceInfulencer(){
                         ClientMonitor c1 = this.stub.getClientMonitor(o.getUser().getUsername());
                         ClientMonitor c2 = this.stub.getClientMonitor(op.getUser().getUsername());
 
-                        System.out.println("1---------> " + o.getOx() + " AND " + op.getOx());
-                        /*c1.getUser().addOpinion(new OpinionTopic(c1.getUser(),topic,0.5));
-                        c2.getUser().addOpinion(new OpinionTopic(c2.getUser(),topic,0.5));
-                        System.out.println("2---------> " + o.getOx() + " AND " + op.getOx());*/
-
-                        double answer_call_c1 = c1.answer_the_call();
-                        double answer_call_c2 = c2.answer_the_call();
-
                         // Vérifions si c1 & c2 ont répondu à l'appel :)
-                        if(answer_call_c1 >= 0.5 && answer_call_c2 >= 0.5) {
+                        if(c1.answer_the_call() >= 0.5 &&  c2.answer_the_call() >= 0.5) {
                             // Vérifions s'ils acceptent la communication :)
                             if(c1.accepts_communication(c2.getUser().getUsername()) == 1 && c2.accepts_communication(c1.getUser().getUsername()) == 1){
                                 double OA = o.getOx();
@@ -529,7 +524,7 @@ public int displayMenuAndGetChoiceInfulencer(){
                                 System.out.println("Communication not accepted between " + c1.getUser().getUsername() + " and " + c2.getUser().getUsername());
                         }
                         else
-                            System.out.println("Call not answered by " + (answer_call_c1 < 0.5 ? c1.getUser().getUsername() : "") + (answer_call_c2 < 0.5 ? " and " + c2.getUser().getUsername() : ""));
+                            System.out.println("Call not answered by " + (c1.answer_the_call() < 0.5 ? c1.getUser().getUsername() : "") + (c2.answer_the_call() < 0.5 ? " and " + c2.getUser().getUsername() : ""));
                     }
                 }
                 else
