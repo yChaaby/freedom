@@ -21,7 +21,7 @@ public class Server implements UserRemote{
     @Override
     public void addListener(ClientMonitor c) throws RemoteException {
         users.put(c.getUser().getUsername(),c);
-        System.out.println(c.getUser().getUsername()+"is an "+c.getUser().getUserType() +" connected !");
+        System.out.println(c.getUser().getUsername()+" is an "+c.getUser().getUserType() +" connected !");
     }
    @Override
     public ClientMonitor getClientMonitor(String username) throws RemoteException {

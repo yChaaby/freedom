@@ -20,13 +20,31 @@ public class Monitor extends UnicastRemoteObject implements ClientMonitor, Seria
     }
 
     @Override
-    public synchronized void sendOpinion(OpinionTopic op) throws RemoteException {
+    public synchronized void sendOpinion(OpinionTopic op, ClientMonitor clientMonitor) throws RemoteException {
        if(this.user.isFirstInteraction(op.getUser())){
            this.user.addInfluenceDegree(op.getUser().getUsername(),Math.random());
        }
+
        if (!this.user.hasOpinionAbout(op.getTopic())){
            this.user.addOpinion(new OpinionTopic(this.user,op.getTopic(),Math.random()));
        }
+
+       //  am I a CRITICAL_THINKER ?
+        if(this.user.getUserType() == UserType.CRITICAL_THINKER)
+        {
+            this.user.displayOpinions();
+            System.out.println("A proof? : ");
+            double proof = clientMonitor.requestProof();
+            System.out.println("Proof requested: " + proof);
+            if(proof < 0.70)
+            {
+                System.out.println("Proof not sufficient. Opinion rejected !");
+                this.user.addOpinion(new OpinionTopic(this.user,op.getTopic(),this.user.getOpinion(op.getTopic()).getOx()));
+                this.user.displayOpinions();
+                return;
+            }
+        }
+        System.out.println("Proof accepted :)");
        double Iab = this.user.getInfluenceDegree(op.getUser());
        double OA = op.getOx();
        double OB = this.user.getOpinion(op.getTopic()).getOx();
@@ -39,10 +57,12 @@ public class Monitor extends UnicastRemoteObject implements ClientMonitor, Seria
     public void setUser(User user) throws RemoteException{
         this.user = user;
     }
+
     @Override
-    public synchronized void propose(Topic t){
+    public synchronized void propose(Topic t)
+    {
         Scanner sc = new Scanner(System.in);
-        System.out.println("What do think about ? : "+t.getIdTopic());
+        System.out.println("What do think about ? : "+ t.getIdTopic());
         double op = Double.parseDouble(sc.nextLine());
         this.user.addOpinion(new OpinionTopic(this.user,t,op));
         System.out.printf("Your opinion %.2f on %s is saved ! ",this.user.getOpinion(t).getOx(),t.getIdTopic());
@@ -53,4 +73,10 @@ public class Monitor extends UnicastRemoteObject implements ClientMonitor, Seria
         System.out.println(msg);
     }
 
+    public double requestProof(){
+        Scanner scanner = new Scanner(System.in);
+        System.err.print("What's your proof? : ");
+        double proof = Double.parseDouble(scanner.nextLine());
+        return proof;
+    }
 }

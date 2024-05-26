@@ -3,10 +3,7 @@ import java.rmi.Remote;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Scanner;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
@@ -22,11 +19,11 @@ public class Client {
         try {
             Client client = new Client();
             client.connect();
-            OpinionTopic c = new OpinionTopic(client.user,new Topic("is the Raja CA the best in the world ?"),1);
+            OpinionTopic c = new OpinionTopic(client.user,new Topic("is the Raja CA the best club in the world ?"),1);
             client.user.addOpinion(c);
             client.user.displayOpinions();
             client.sendOpinionTo(c,"koceila1");
-            client.proposer();
+            //client.proposer();
             //ClientMonitor receiver = (ClientMonitor) client.stub.getClientMonitor("koceila1");
             //receiver.displayMessage("Dima Dima RAJA");
 
@@ -38,7 +35,9 @@ public class Client {
     }
     public void sendOpinionTo(OpinionTopic op, String username) throws RemoteException {
         ClientMonitor receiver = (ClientMonitor) this.stub.getClientMonitor(username);
-        receiver.sendOpinion(op);
+        // Depuis le client, j'exécute les fonctions du moniteur destinataire :)
+
+        receiver.sendOpinion(op,this.monitor);
     }
     public void addOpinion(){
         Scanner scanner = new Scanner(System.in);
@@ -90,6 +89,24 @@ public class Client {
         this.stub = (UserRemote) registry.lookup("Server");
         stub.addListener(monitor);
     }
+
+    // Cette méthode ci-dessous est implementé uniquement par le CONSENSUS_FINDER :
+    public void findPairsAndMakeThemTalk(Topic topic) throws RemoteException {
+        if(this.user.getUserType() != UserType.CONSENSUS_FINDER)
+        {
+            System.err.println("You are not a consensus finder. ");
+            return;
+        }
+        // Je recupère tous les moniteurs du réseau :)
+        HashMap<String, ClientMonitor> users = (HashMap<String, ClientMonitor>) this.stub.getUsers();
+
+
+
+
+    }
+
+
+    // Cette méthode va être implementé uniquement par le Proposer :)
     public void proposer() throws RemoteException{
         new Thread(() -> {
             try {

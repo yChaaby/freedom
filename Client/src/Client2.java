@@ -12,7 +12,7 @@ public class Client2 {
     private User user;
     public static void main(String[] args) {
         try {
-            User thisuser = new User("koceila1",new Date("21/10/1945"), UserType.REGULAR_USER);
+            User thisuser = new User("koceila1",new Date("21/10/1945"), UserType.CRITICAL_THINKER);
             Monitor monitor = new Monitor(thisuser);
             //System.out.println("tapez le username d'un utilisateur : ");
             //Scanner sc = new Scanner(System.in);
@@ -22,9 +22,6 @@ public class Client2 {
             // Finding the remote object
             UserRemote stub = (UserRemote) registry.lookup("Server");
             stub.addListener(monitor);
-
-            //Monitor receiver = stub.getClientMonitor(sc.next());
-            //Thread.sleep(100000);
 
 
 

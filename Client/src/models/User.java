@@ -1,15 +1,17 @@
 package models;
 import java.io.Serializable;
+import java.rmi.Remote;
+import java.rmi.RemoteException;
 import java.util.*;
 
-public class User implements Serializable {
+public class User  implements Serializable, Remote {
     private String username;
     private Date bday;
     private UserType userType;
     private HashMap<String ,OpinionTopic> opinions;
     private HashMap<String ,Double> influenceDegree;
 
-    public User(String username, Date bday, UserType userType) {
+    public User(String username, Date bday, UserType userType) throws RemoteException {
         this.username = username;
         this.bday = bday;
         this.opinions = new HashMap<>();
@@ -94,3 +96,4 @@ public class User implements Serializable {
         this.bday = bday;
     }
 }
+
