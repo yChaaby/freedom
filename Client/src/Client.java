@@ -3,16 +3,13 @@ import java.rmi.Remote;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Scanner;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
-
 import models.*;
 import services.ClientMonitor;
 import services.UserRemote;
+
 
 public class Client {
     public User user;
@@ -22,11 +19,18 @@ public class Client {
         try {
             Client client = new Client();
             client.connect();
-            OpinionTopic c = new OpinionTopic(client.user,new Topic("is the Raja CA the best in the world ?"),1);
+            java.io.Console console = System.console();
+            String unT = console.readLine("Enter a topic a sov: ");
+            OpinionTopic c = new OpinionTopic(client.user,new Topic(unT),1);
             client.user.addOpinion(c);
             client.user.displayOpinions();
-            client.sendOpinionTo(c,"koceila1");
+            //client.sendOpinionTo(c,"koceila1");
             client.proposer();
+            client.cmdfollow();
+            if(client.user.getUserType()==UserType.INFLUENCER){
+                console.readLine("Enter to next: ");
+                client.diffuserOP();
+            }
             //ClientMonitor receiver = (ClientMonitor) client.stub.getClientMonitor("koceila1");
             //receiver.displayMessage("Dima Dima RAJA");
 
@@ -60,7 +64,6 @@ public class Client {
                 "  5  CONSENSUS_FINDER ) : ");
         int functionChoice = scanner.nextInt();
         UserType userType = UserType.REGULAR_USER; // Default
-
         switch (functionChoice) {
             case 1:
                 userType = UserType.REGULAR_USER;
@@ -90,19 +93,77 @@ public class Client {
         this.stub = (UserRemote) registry.lookup("Server");
         stub.addListener(monitor);
     }
+    public void cmdfollow() throws RemoteException {
+        if(this.user.getUserType()==UserType.CONSENSUS_FINDER
+                || this.user.getUserType()==UserType.PROPOSER
+                || this.user.getUserType()==UserType.INFLUENCER){
+            System.err.println("You can't follow !");
+            return;
+        }
+        HashMap<String, ClientMonitor> map= (HashMap<String, ClientMonitor>) this.stub.getUsers();
+        HashMap<String, OpinionTopic> map1 = this.user.getOpinions();
+        System.out.println("Connected Influencers : ");
+        ArrayList<String> infs = new ArrayList<String>();
+        for (ClientMonitor inf: map.values()){
+            if(inf!=null&&(inf.getUser().getUserType()==UserType.INFLUENCER)) {
+                String username = inf.getUser().getUsername();
+                System.out.printf("The influencer %s is connected\n",username);
+                infs.add(username);
+            }
+        }
+
+
+        if (infs.isEmpty()) {
+            return;
+        }
+        String infsel;
+        do {
+            java.io.Console console = System.console();
+            infsel = console.readLine("Enter a influencer: ");
+            if(infs.contains(infsel)){break;}
+        } while (true);
+
+        this.stub.getClientMonitor(infsel).addFollower(this.user.getUsername());
+        System.out.println(infsel+" is followed !!");
+
+    }
+    public void diffuserOP() throws RemoteException {
+        HashMap<String, OpinionTopic> map1 = this.user.getOpinions();
+        System.out.println("Diffuser opinions : ");
+        if (map1.isEmpty()) {
+            System.out.println("No opinions to diffuse ! add some opinions al hmar !");
+            return;
+        }
+        ArrayList<String> infs = new ArrayList<String>();
+        for (String topic: map1.keySet()){
+            System.out.printf("Topic : %s your\n",topic);
+            infs.add(topic);
+        }
+        do{
+            java.io.Console console = System.console();
+            String Topic = console.readLine("Topic : ");
+            if(infs.contains(Topic)){
+                for(String follower: this.user.getFollowrs()){
+                    ClientMonitor tempM=this.stub.getClientMonitor(follower);
+                    tempM.sendOpinion(this.user.getOpinion(new Topic(Topic)));
+                }
+                break;
+            }
+        }while(true);
+
+    }
     public void proposer() throws RemoteException{
+        if (this.user.getUserType() != UserType.PROPOSER) {
+            System.err.println("You are not a proposer User.");
+            return;
+        }
         new Thread(() -> {
             try {
-                if (this.user.getUserType() != UserType.PROPOSER) {
-                    System.err.println("You are not a proposer User.");
-                    return;
-                }
 
                 Scanner scanner = new Scanner(System.in);
                 System.err.print("Topic : ");
                 String topic = scanner.nextLine();
                 scanner.close(); // N'oubliez pas de fermer le scanner
-
                 HashMap<String, ClientMonitor> map = (HashMap<String, ClientMonitor>) this.stub.getUsers();
 
                 // Création d'une liste de CompletableFuture pour chaque proposition
@@ -131,7 +192,6 @@ public class Client {
             }
         }).start();
         System.out.println("done.");
-
     }
 
 

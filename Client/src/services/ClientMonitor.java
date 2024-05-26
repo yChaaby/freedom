@@ -12,4 +12,5 @@ public interface ClientMonitor extends Remote {
     public User getUser() throws RemoteException;
     public void sendOpinion(OpinionTopic op) throws RemoteException;
     public void propose(Topic t)throws RemoteException;
+    public void addFollower(String username) throws RemoteException;
 }

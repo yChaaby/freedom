@@ -20,6 +20,9 @@ public class Server implements UserRemote{
     }
     @Override
     public void addListener(ClientMonitor c) throws RemoteException {
+        if(users.containsKey(c.getUser().getUsername())){
+            throw new InternalError("the user already exists");
+        }
         users.put(c.getUser().getUsername(),c);
         System.out.println(c.getUser().getUsername()+"is an "+c.getUser().getUserType() +" connected !");
     }
