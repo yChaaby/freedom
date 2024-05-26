@@ -1,60 +1,76 @@
 package models;
 import java.io.Serializable;
+import java.rmi.Remote;
+import java.rmi.RemoteException;
 import java.util.*;
 
-public class User implements Serializable {
+public class User implements Serializable, Remote {
+
+
     private String username;
     private Date bday;
     private UserType userType;
     private HashMap<String ,OpinionTopic> opinions;
     private HashMap<String ,Double> influenceDegree;
+    private List<String> followrs;
 
+
+    public List<String> getFollowrs() {
+        return followrs;
+    }
+
+    public User(String username, Date bday, UserType userType) throws RemoteException {
+        super();
+        this.username = username;
+        this.bday = bday;
+        this.userType = userType;
+        this.opinions = new HashMap<>();
+        this.influenceDegree = new HashMap<>();
+        this.followrs = new ArrayList<>();
+    }
     public UserType getUserType() {
         return userType;
+    }
+    public void addFollower(String follower) {
+        followrs.add(follower);
     }
 
     public void setUserType(UserType userType) {
         this.userType = userType;
     }
 
-    public User(String username, Date bday, UserType userType) {
-        this.username = username;
-        this.bday = bday;
-        this.userType = userType;
-        this.opinions = new HashMap<>();
-        this.influenceDegree = new HashMap<>();
-    }
-    public boolean isFirstInteraction(User user){
+    public boolean isFirstInteraction(User user) {
         return !this.influenceDegree.containsKey(user.getUsername());
     }
     public boolean hasOpinionAbout(Topic t){
-        return !this.opinions.containsKey(t.getIdTopic());
+        return this.opinions.containsKey(t.getIdTopic());
     }
+
     public void addInfluenceDegree(String username, Double degree) {
-        this.influenceDegree.put(username,degree);
+        this.influenceDegree.put(username, degree);
     }
 
     public HashMap<String, OpinionTopic> getOpinions() {
         return opinions;
     }
-    public double getInfluenceDegree(User user){
+
+    public double getInfluenceDegree(User user) {
         return influenceDegree.get(user.getUsername());
     }
 
-    public OpinionTopic getOpinion(Topic t){
+    public OpinionTopic getOpinion(Topic t) {
         return opinions.get(t.getIdTopic());
     }
 
     public void displayOpinions() {
-        HashMap<String,OpinionTopic> map = this.opinions;
+        HashMap<String, OpinionTopic> map = this.opinions;
         if (map.isEmpty()) {
-            System.out.println("The map is empty.");
+            System.out.println("The map is empty, you can add some opinions !");
             return;
         }
-
-        System.out.println("HashMap Contents:");
+        System.out.println("Opinions Contents :");
         for (Map.Entry<String, OpinionTopic> entry : map.entrySet()) {
-            System.out.println("Key: " + entry.getKey() + ", Value: " + entry.getValue().getOx());
+            System.out.println("Topic: " + entry.getKey() + ", Opinion: " + entry.getValue().getOx());
         }
     }
 
@@ -74,6 +90,7 @@ public class User implements Serializable {
     public void setOpinions(HashMap<String, OpinionTopic> opinions) {
         this.opinions = opinions;
     }
+
     public void addOpinion(OpinionTopic op) {
         opinions.put(op.getTopic().getIdTopic(), op);
     }

@@ -20,8 +20,11 @@ public class Server implements UserRemote{
     }
     @Override
     public void addListener(ClientMonitor c) throws RemoteException {
+        if(users.containsKey(c.getUser().getUsername())){
+            throw new InternalError("the user already exists");
+        }
         users.put(c.getUser().getUsername(),c);
-        System.out.println(c.getUser().getUsername()+"is an "+c.getUser().getUserType() +" connected !");
+        System.out.println(c.getUser().getUsername()+" is an "+c.getUser().getUserType() +" connected !");
     }
    @Override
     public ClientMonitor getClientMonitor(String username) throws RemoteException {
@@ -33,5 +36,14 @@ public class Server implements UserRemote{
     @Override
     public Map<String, ClientMonitor> getUsers() throws RemoteException {
         return users;
+    }
+
+    public List<ClientMonitor> getClientMonitors() throws RemoteException {
+        List<ClientMonitor> myListMonitors = new ArrayList<>();
+        for(Map.Entry<String,ClientMonitor> entry : users.entrySet())
+        {
+            myListMonitors.add(entry.getValue());
+        }
+        return myListMonitors;
     }
 }

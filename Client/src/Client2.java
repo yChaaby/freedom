@@ -23,9 +23,6 @@ public class Client2 {
             UserRemote stub = (UserRemote) registry.lookup("Server");
             stub.addListener(monitor);
 
-            //Monitor receiver = stub.getClientMonitor(sc.next());
-            //Thread.sleep(100000);
-
 
 
         } catch (Exception e) {
