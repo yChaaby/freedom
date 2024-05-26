@@ -77,11 +77,11 @@ public class Client {
         OpinionTopic c = new OpinionTopic(this.user,new Topic(topicid), ox);
         this.user.addOpinion(c);
     }
-    public void addOpinion(){
+    /*public void addOpinion(){
         Scanner scanner = new Scanner(System.in);
         System.out.print("Enter opinion (ex: 0.5) / 1) : ");
         float opinion = scanner.nextFloat();
-    }
+    }*/
     public Client() throws RemoteException {
         String username;
         Date birthday;
@@ -169,22 +169,16 @@ public class Client {
             try {
                 switch (choice) {
                     case 1:
-                        //InfluenceMethode1
                         diffuserOP();
                         break;
                     case 2:
-                        //InfluenceMethode2
-                        System.out.println("InfluenceMethode2");
+
+                        addOp();
                         break;
                     case 3:
-                        //InfluenceMethode3
-                        System.out.println("InfluenceMethode3");
+                        this.user.displayOpinions();
                         break;
                     case 4:
-                        //InfluenceMethode4
-                        System.out.println("InfluenceMethode4");
-                        break;
-                    case 5:
                         System.out.println("Exiting...");
                         System.exit(0);
                         break;
@@ -241,22 +235,9 @@ public class Client {
             try {
                 switch (choice) {
                     case 1:
-                        //ConsensusFinderMethode1
-                        System.out.println("ConsensusFinderMethode1");
+                        Talk();
                         break;
                     case 2:
-                        //CriticalThinkerMethode2
-                        System.out.println("ConsensusFinderMethode2");
-                        break;
-                    case 3:
-                        //CriticalThinkerMethode3
-                        System.out.println("ConsensusFinderMethode3");
-                        break;
-                    case 4:
-                        //CriticalThinkerMethode4
-                        System.out.println("ConsensusFinder4");
-                        break;
-                    case 5:
                         System.out.println("Exiting...");
                         System.exit(0);
                         break;
@@ -329,9 +310,9 @@ public int displayMenuAndGetChoiceInfulencer(){
             System.out.println("1. Diffuse an opinion !");
             System.out.println("2. Add opinion !");
             System.out.println("3. Display opinion !");
-            System.out.println("4. InfluencerMethode4");
 
-            System.out.println("5. Exit");
+
+            System.out.println("4. Exit");
             System.out.print("Enter your choice: ");
 
 
@@ -349,12 +330,8 @@ public int displayMenuAndGetChoiceInfulencer(){
         Scanner scanner = new Scanner(System.in);
         int choice = -1;
         if ((this.user.getUserType() != UserType.REGULAR_USER)&& (this.user.getUserType() != UserType.PROPOSER) && (this.user.getUserType() != UserType.CRITICAL_THINKER) && (this.user.getUserType() != UserType.INFLUENCER)) {
-            System.out.println("1. ConsensusFinderMethode1");
-            System.out.println("2. ConsensusFinderMethode2");
-            System.out.println("3. ConsensusFinderMethode3");
-            System.out.println("4. ConsensusFinderMethode4");
-
-            System.out.println("5. Exit");
+            System.out.println("1. Search for pairs of agents A and B to talk");
+            System.out.println("2. Exit");
             System.out.print("Enter your choice: ");
 
 
@@ -477,7 +454,22 @@ public int displayMenuAndGetChoiceInfulencer(){
         }while(true);
 
     }
+    private void Talk() throws RemoteException {
+        Scanner scanner = new Scanner(System.in);
 
+        List<ClientMonitor> clientMonitors = this.stub.getClientMonitors();
+         Set<String> list_topics = new HashSet<>();
+        for(ClientMonitor c : clientMonitors)
+            list_topics.addAll(c.getUser().getOpinions().keySet());
+
+        System.out.println("Your topics :");
+        for(String topic : list_topics)
+            System.out.println(topic + " is connected");
+
+        System.out.print("Enter topic ID: ");
+        String topicId = scanner.nextLine();
+        this.findPairsAndMakeThemTalk(new Topic(topicId));
+    }
     // Cette méthode ci-dessous est implementé uniquement par le CONSENSUS_FINDER :
     public void findPairsAndMakeThemTalk(Topic topic) throws RemoteException {
         if(this.user.getUserType() != UserType.CONSENSUS_FINDER)
@@ -533,7 +525,7 @@ public int displayMenuAndGetChoiceInfulencer(){
                     }
                 }
                 else
-                    continue;
+                    System.out.println("Aucune de paire (A,B) n'a été trouvée !");
             }
     }
 
