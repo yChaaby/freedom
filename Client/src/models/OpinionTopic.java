@@ -1,8 +1,9 @@
 package models;
 
 import java.io.Serializable;
+import java.rmi.Remote;
 
-public class OpinionTopic implements Serializable {
+public class OpinionTopic implements Serializable, Remote {
     private User user;
     private Topic topic;
     private double ox;

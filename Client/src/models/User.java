@@ -1,10 +1,10 @@
 package models;
 import java.io.Serializable;
 import java.rmi.Remote;
+import java.rmi.RemoteException;
 import java.util.*;
 
-public class User implements Serializable, Remote {
-
+public class User  implements Serializable, Remote {
     private String username;
     private Date bday;
     private UserType userType;
@@ -16,7 +16,7 @@ public class User implements Serializable, Remote {
         return followrs;
     }
 
-    public User(String username, Date bday, UserType userType) {
+    public User(String username, Date bday, UserType userType) throws RemoteException {
         this.username = username;
         this.bday = bday;
         this.userType = userType;
@@ -103,3 +103,4 @@ public class User implements Serializable, Remote {
         this.bday = bday;
     }
 }
+
