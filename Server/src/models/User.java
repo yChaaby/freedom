@@ -4,9 +4,7 @@ import java.rmi.Remote;
 import java.rmi.RemoteException;
 import java.util.*;
 
-public class User implements Serializable, Remote {
-
-
+public class User  implements Serializable, Remote {
     private String username;
     private Date bday;
     private UserType userType;
@@ -14,13 +12,11 @@ public class User implements Serializable, Remote {
     private HashMap<String ,Double> influenceDegree;
     private List<String> followrs;
 
-
     public List<String> getFollowrs() {
         return followrs;
     }
 
     public User(String username, Date bday, UserType userType) throws RemoteException {
-        super();
         this.username = username;
         this.bday = bday;
         this.userType = userType;
@@ -38,32 +34,29 @@ public class User implements Serializable, Remote {
     public void setUserType(UserType userType) {
         this.userType = userType;
     }
-
-    public boolean isFirstInteraction(User user) {
+    public boolean isFirstInteraction(User user){
         return !this.influenceDegree.containsKey(user.getUsername());
     }
     public boolean hasOpinionAbout(Topic t){
         return this.opinions.containsKey(t.getIdTopic());
     }
-
     public void addInfluenceDegree(String username, Double degree) {
-        this.influenceDegree.put(username, degree);
+        this.influenceDegree.put(username,degree);
     }
 
     public HashMap<String, OpinionTopic> getOpinions() {
         return opinions;
     }
-
-    public double getInfluenceDegree(User user) {
+    public double getInfluenceDegree(User user){
         return influenceDegree.get(user.getUsername());
     }
 
-    public OpinionTopic getOpinion(Topic t) {
+    public OpinionTopic getOpinion(Topic t){
         return opinions.get(t.getIdTopic());
     }
 
     public void displayOpinions() {
-        HashMap<String, OpinionTopic> map = this.opinions;
+        HashMap<String,OpinionTopic> map = this.opinions;
         if (map.isEmpty()) {
             System.out.println("The map is empty, you can add some opinions !");
             return;
@@ -90,7 +83,6 @@ public class User implements Serializable, Remote {
     public void setOpinions(HashMap<String, OpinionTopic> opinions) {
         this.opinions = opinions;
     }
-
     public void addOpinion(OpinionTopic op) {
         opinions.put(op.getTopic().getIdTopic(), op);
     }

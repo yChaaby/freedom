@@ -11,7 +11,7 @@ import java.util.concurrent.locks.ReentrantLock;
 public class Monitor extends UnicastRemoteObject implements ClientMonitor, Serializable {
 
     private User user;
-    private final Lock lock = new ReentrantLock();
+    private final Lock lock = new ReentrantLock(true);
 
     public Monitor(User user) throws RemoteException{
     this.user=user;
@@ -97,24 +97,30 @@ public class Monitor extends UnicastRemoteObject implements ClientMonitor, Seria
     }
 
     public double requestProof(){
+        this.lock.lock();
         Scanner scanner = new Scanner(System.in);
         System.err.print("What's your proof? : ");
         double proof = Double.parseDouble(scanner.nextLine());
+        this.lock.unlock();
         return proof;
     }
 
     public double answer_the_call() throws RemoteException{
+        this.lock.lock();
         Scanner scanner = new Scanner(System.in);
         System.err.print("Are you going to answer this call? [Choose a number between 0 and 1]: ");
         double answer_call = Double.parseDouble(scanner.nextLine());
+        this.lock.unlock();
         return answer_call;
 
     }
 
     public int accepts_communication(String username) throws RemoteException {
+        lock.lock();
         Scanner scanner = new Scanner(System.in);
         System.err.print(this.user.getUsername() + ", Would you like to chat with " + username + "?" + "[0 to refuse or 1 to accept ] :");
         int answer_call = (int) Double.parseDouble(scanner.nextLine());
+        this.lock.unlock();
         return answer_call;
     }
 }

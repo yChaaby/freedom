@@ -1,3 +1,10 @@
+/*
+La Class client !
+C'est l'application dans laquelle un user va se connecter et executer certain fonction donner par le menu
+ */
+
+
+
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
@@ -25,7 +32,17 @@ public class Client {
         try {
             Client client = new Client();
             client.connect();
-            client.showMenu();
+            OpinionTopic c = new OpinionTopic(client.user,new Topic("is the Raja CA the best club in the world ?"),1);
+            client.user.addOpinion(c);
+            client.user.displayOpinions();
+            client.sendOpinionTo(c,"koceila1");
+            client.sendOpinionTo(c,"koceila2");
+            client.sendOpinionTo(c,"koceila3");
+            client.findPairsAndMakeThemTalk(c.getTopic());
+            /*Client client = new Client();
+
+            client.connect();
+            client.showMenu();*/
 
         } catch (Exception e) {
             System.err.println("Client exception: " + e.toString());
@@ -163,15 +180,15 @@ public class Client {
                         break;
                     case 2:
                         //InfluenceMethode2
-                        System.out.println("InfluenceMethode2");
+                        addOp();
                         break;
                     case 3:
                         //InfluenceMethode3
-                        System.out.println("InfluenceMethode3");
+                        this.user.displayOpinions();
                         break;
                     case 4:
                         //InfluenceMethode4
-                        System.out.println("InfluenceMethode4");
+                        cmdfollow();
                         break;
                     case 5:
                         System.out.println("Exiting...");
@@ -442,6 +459,11 @@ public int displayMenuAndGetChoiceInfulencer(){
 
     }
     public void diffuserOP() throws RemoteException {
+        if(this.user.getUserType()!=UserType.INFLUENCER){
+            System.err.println("You can't diffuse !");
+            return;
+        }
+
         HashMap<String, OpinionTopic> map1 = this.user.getOpinions();
         System.out.println("Diffuser opinions : ");
         if (map1.isEmpty()) {
@@ -450,17 +472,23 @@ public int displayMenuAndGetChoiceInfulencer(){
         }
         ArrayList<String> infs = new ArrayList<String>();
         for (String topic: map1.keySet()){
-            System.out.printf("Topic : %s your\n",topic);
+            System.out.printf("Topic : %s \n",topic);
             infs.add(topic);
         }
         do{
             java.io.Console console = System.console();
             String Topic = console.readLine("Topic : ");
             if(infs.contains(Topic)){
-                for(String follower: this.user.getFollowrs()){
-                    ClientMonitor tempM=this.stub.getClientMonitor(follower);
-                    tempM.sendOpinion(this.user.getOpinion(new Topic(Topic)),this.monitor);
-                }
+                new Thread(()->{for(String follower: this.user.getFollowrs()){
+                    ClientMonitor tempM= null;
+                    try {
+                        tempM = this.stub.getClientMonitor(follower);
+                        tempM.sendOpinion(this.user.getOpinion(new Topic(Topic)),this.monitor);
+                    } catch (RemoteException e) {
+                        throw new RuntimeException(e);
+                    }
+
+                }}).start();
                 break;
             }
         }while(true);
@@ -468,7 +496,7 @@ public int displayMenuAndGetChoiceInfulencer(){
     }
 
     // Cette méthode ci-dessous est implementé uniquement par le CONSENSUS_FINDER :
-    public void findPairsAndMakeThemTalk(Topic topic) throws RemoteException {
+    public void findPairsAndMakeThemTalk(Topic topic) throws RemoteException, InterruptedException, ExecutionException {
         if(this.user.getUserType() != UserType.CONSENSUS_FINDER)
         {
             System.err.println("You are not a consensus finder. ");
@@ -560,7 +588,7 @@ public int displayMenuAndGetChoiceInfulencer(){
 
                 // Attendre la complétion de toutes les futures
                 CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
-                System.out.println("All proposals have been sent and processed.");
+                //System.out.println("All proposals have been sent and processed.");
             } catch (RemoteException e) {
                 System.err.println("RemoteException during propose: " + e.getMessage());
             }
