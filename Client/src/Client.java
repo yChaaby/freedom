@@ -68,7 +68,16 @@ public class Client {
     }
     public void sendOpinionTo(OpinionTopic op, String username) throws RemoteException {
         ClientMonitor receiver = (ClientMonitor) this.stub.getClientMonitor(username);
-        receiver.sendOpinion(op,this.monitor);
+        System.out.println("taya");
+
+        new Thread(()->{
+            try {
+                receiver.sendOpinion(op,this.monitor);
+            } catch (RemoteException e) {
+                throw new RuntimeException(e);
+            }
+        }).start();
+
     }
     public void addOp(){
         System.out.print("About what topic :");
@@ -198,42 +207,6 @@ public class Client {
             }
         }
     }
-    public void ShowMenuCriticalThinker() {
-        while (true) {
-            System.out.println("\n--- Menu ---");
-            int choice = displayMenuAndGetChoiceCriticalThinker();
-            try {
-                switch (choice) {
-                    case 1:
-                        //CriticalThinkerMethode1
-                        System.out.println("CriticalThinkerMethode1");
-                        break;
-                    case 2:
-                        //CriticalThinkerMethode2
-                        System.out.println("CriticalThinkerMethode2");
-                        break;
-                    case 3:
-                        //CriticalThinkerMethode3
-                        System.out.println("CriticalThinkerMethode3");
-                        break;
-                    case 4:
-                        //CriticalThinkerMethode4
-                        System.out.println("CriticalThinkerMethode4");
-                        break;
-                    case 5:
-                        System.out.println("Exiting...");
-                        System.exit(0);
-                        break;
-                    default:
-                        System.out.println("Invalid choice. Please try again.");
-                }
-            }
-            catch (Exception e) {
-                System.err.println("Error: " + e.toString());
-                e.printStackTrace();
-            }
-        }
-    }
     public void ShowMenuConsesusFinder() {
         while (true) {
             System.out.println("\n--- Menu ---");
@@ -274,17 +247,17 @@ public class Client {
                     sendOpinionToUser();
                     break;
                 case 4:
-                    //followSomeOne()
+
                     cmdfollow();
                     break;
-
                 case 5:
-                    System.out.println("Exiting...");
-                    System.exit(0);
-                case 6:
                     checkNotification();
                     System.out.println("checked !");
                     break;
+                case 6:
+                    System.out.println("Exiting...");
+                    System.exit(0);
+
                 default:
                     System.out.println("Invalid choice. Please try again.");
             }
@@ -294,8 +267,10 @@ public class Client {
         }
     }
 }
-public void checkNotification(){
+public void checkNotification() throws InterruptedException {
     this.monitor.lock.unlock();
+    Thread.sleep(100);
+    this.monitor.lock.lock();
 }
 
 public int displayMenuAndGetChoiceProposer(){
@@ -359,40 +334,18 @@ public int displayMenuAndGetChoiceInfulencer(){
 
         return choice;
     }
-    public int displayMenuAndGetChoiceCriticalThinker(){
-        Scanner scanner = new Scanner(System.in);
-        int choice = -1;
-        if ((this.user.getUserType() != UserType.REGULAR_USER)&& (this.user.getUserType() != UserType.PROPOSER) && (this.user.getUserType() != UserType.INFLUENCER) && (this.user.getUserType() != UserType.CONSENSUS_FINDER)) {
-            System.out.println("1. CriticalThinkerMethode1");
-            System.out.println("2. CriticalThinkerMethode2");
-            System.out.println("3. CriticalThinkerMethode3");
-            System.out.println("4. CriticalThinkerMethode4");
 
-            System.out.println("5. Exit");
-            System.out.print("Enter your choice: ");
-
-
-        }
-        if (scanner.hasNextInt()) {
-            choice = scanner.nextInt();
-            scanner.nextLine(); // consume newline
-        } else {
-            scanner.nextLine(); // consume the invalid input
-        }
-
-        return choice;
-    }
 
     public int displayMenuAndGetChoiceRegularUser() {
     Scanner scanner = new Scanner(System.in);
     int choice = -1;
-    if ((this.user.getUserType() != UserType.PROPOSER)&& (this.user.getUserType() != UserType.INFLUENCER) && (this.user.getUserType() != UserType.CRITICAL_THINKER) && (this.user.getUserType() != UserType.CONSENSUS_FINDER)) {
+    if ((this.user.getUserType() != UserType.PROPOSER)&& (this.user.getUserType() != UserType.INFLUENCER)  && (this.user.getUserType() != UserType.CONSENSUS_FINDER)) {
         System.out.println("1. Add an Opinion");
         System.out.println("2. Display Opinions");
         System.out.println("3. Send Opinion to User");
         System.out.println("4. follow some one ");
-        System.out.println("5. Exit");
-        System.out.println("5. checkNotification()");
+        System.out.println("5. checkNotification");
+        System.out.println("6. Exit");
         System.out.print("Enter your choice: ");
 
     }
@@ -510,23 +463,17 @@ public int displayMenuAndGetChoiceInfulencer(){
         for(OpinionTopic o : opinionTopics)
             for(OpinionTopic op : opinionTopics)
             {
-                if(!o.equals(op)) {
-                    if((o.getUser().getUserType() != UserType.CONSENSUS_FINDER) && (op.getUser().getUserType() != UserType.CONSENSUS_FINDER))
-                    {
+                if(o == null || o.equals(op)) continue;
+                if((o.getUser().getUserType() != UserType.CONSENSUS_FINDER) && (op.getUser().getUserType() != UserType.CONSENSUS_FINDER))
+                {
                         // On récupére les deux monitors :
                         ClientMonitor c1 = this.stub.getClientMonitor(o.getUser().getUsername());
                         ClientMonitor c2 = this.stub.getClientMonitor(op.getUser().getUsername());
 
                         System.out.println("1---------> " + o.getOx() + " AND " + op.getOx());
-                        /*c1.getUser().addOpinion(new OpinionTopic(c1.getUser(),topic,0.5));
-                        c2.getUser().addOpinion(new OpinionTopic(c2.getUser(),topic,0.5));
-                        System.out.println("2---------> " + o.getOx() + " AND " + op.getOx());*/
-
-                        double answer_call_c1 = c1.answer_the_call();
-                        double answer_call_c2 = c2.answer_the_call();
 
                         // Vérifions si c1 & c2 ont répondu à l'appel :)
-                        if(answer_call_c1 >= 0.5 && answer_call_c2 >= 0.5) {
+                        if(c1.answer_the_call() >= 0.5 && c2.answer_the_call() >= 0.5) {
                             // Vérifions s'ils acceptent la communication :)
                             if(c1.accepts_communication(c2.getUser().getUsername()) == 1 && c2.accepts_communication(c1.getUser().getUsername()) == 1){
                                 double OA = o.getOx();
@@ -534,19 +481,14 @@ public int displayMenuAndGetChoiceInfulencer(){
                                 double averageOpinion = (OA + OB) / 2;
                                 c1.addOpinion(new OpinionTopic(c1.getUser(),topic,averageOpinion));
                                 c2.addOpinion(new OpinionTopic(c2.getUser(),topic,averageOpinion));
-                                c1.displayMessage("My new opinion on [" + topic.getIdTopic() + "] : " + c1.getUser().getOpinion(topic).getOx());
-                                c2.displayMessage("My new opinion on [" + topic.getIdTopic() + "] : " + c2.getUser().getOpinion(topic).getOx());
                                 return;
                             }
                             else
                                 System.out.println("Communication not accepted between " + c1.getUser().getUsername() + " and " + c2.getUser().getUsername());
                         }
                         else
-                            System.out.println("Call not answered by " + (answer_call_c1 < 0.5 ? c1.getUser().getUsername() : "") + (answer_call_c2 < 0.5 ? " and " + c2.getUser().getUsername() : ""));
+                            System.out.println("Call not answered by " + (c1.answer_the_call() < 0.5 ? c1.getUser().getUsername() : "") + (c2.answer_the_call() < 0.5 ? " and " + c2.getUser().getUsername() : ""));
                     }
-                }
-                else
-                    System.out.println("Aucune de paire (A,B) n'a été trouvée !");
             }
     }
 
@@ -556,12 +498,11 @@ public int displayMenuAndGetChoiceInfulencer(){
             System.err.println("You are not a proposer User.");
             return;
         }
+        Scanner scanner = new Scanner(System.in);
+        System.err.print(" Enter your Topic : ");
+        String topic = scanner.nextLine();
         new Thread(() -> {
             try {
-
-                Scanner scanner = new Scanner(System.in);
-                System.err.print(" Enter your Topic : ");
-                String topic = scanner.nextLine();
                 HashMap<String, ClientMonitor> map = (HashMap<String, ClientMonitor>) this.stub.getUsers();
 
                 // Création d'une liste de CompletableFuture pour chaque proposition
@@ -584,7 +525,6 @@ public int displayMenuAndGetChoiceInfulencer(){
 
                 // Attendre la complétion de toutes les futures
                 CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
-                System.out.println("All proposals have been sent and processed.");
             } catch (RemoteException e) {
                 System.err.println("RemoteException during propose: " + e.getMessage());
             }
