@@ -1,7 +1,7 @@
 package services;
+
 import models.UserType;
 
-import java.io.Serializable;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
 import java.util.List;
@@ -12,6 +12,6 @@ public interface UserRemote extends Remote {
     public void addListener(ClientMonitor c) throws RemoteException;
     public Map<String, ClientMonitor> getUsers() throws RemoteException;
     public List<ClientMonitor> getClientMonitors() throws RemoteException;
-
-    public void idDisconnected(String name, UserType type) throws RemoteException;
+    public void isDisconnected(String name, UserType type) throws RemoteException;
+    public void exit_system(String username,UserType type) throws RemoteException;
 }

@@ -1,9 +1,10 @@
 package models;
+
 import services.ClientMonitor;
+
+import java.io.Serializable;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
-import java.io.Serializable ;
-import java.util.Random;
 import java.util.Scanner;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -30,9 +31,7 @@ public class Monitor extends UnicastRemoteObject implements ClientMonitor, Seria
             System.out.println("YOU DO NOT HAVE THE RIGHT TO ACCES TO THIS");
             return;
         }
-
         this.lock.unlock();
-
     }
     public Monitor() throws RemoteException {}
     @Override
@@ -44,7 +43,7 @@ public class Monitor extends UnicastRemoteObject implements ClientMonitor, Seria
         lock.lock();
         if (this.user.getUserType()==UserType.INFLUENCER){
             this.getUser().addFollower(username);
-            System.out.println(username+" is following you ;-)");
+            System.out.println(username + " is following you ;-)");
         }
         lock.unlock();
     }
