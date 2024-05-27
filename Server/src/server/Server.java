@@ -1,4 +1,5 @@
 package server;
+import models.UserType;
 import services.ClientMonitor;
 import services.UserRemote;
 import java.io.Serializable;
@@ -24,7 +25,7 @@ public class Server implements UserRemote{
             throw new InternalError("the user already exists");
         }
         users.put(c.getUser().getUsername(),c);
-        System.out.println(c.getUser().getUsername()+" is an "+c.getUser().getUserType() +" connected !");
+        System.out.println(c.getUser().getUsername() +" is an " +c.getUser().getUserType() +" connected !");
     }
    @Override
     public ClientMonitor getClientMonitor(String username) throws RemoteException {
@@ -38,6 +39,10 @@ public class Server implements UserRemote{
         return users;
     }
 
+    @Override
+    public void idDisconnected(String name, UserType type) throws RemoteException{
+        System.out.println(name + " is an " + type + " disconnected");
+    }
     public List<ClientMonitor> getClientMonitors() throws RemoteException {
         List<ClientMonitor> myListMonitors = new ArrayList<>();
         for(Map.Entry<String,ClientMonitor> entry : users.entrySet())

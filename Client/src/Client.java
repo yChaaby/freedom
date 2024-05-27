@@ -23,6 +23,7 @@ public class Client {
     public Monitor monitor;
     public UserRemote stub;
     private String password;
+
     public static void main(String[] args)  {
         try {
             Client client = new Client();
@@ -165,7 +166,7 @@ public class Client {
                         break;
                     case 2:
                         System.out.println("Exiting...");
-                        System.exit(0);
+                        exit_system();
                         break;
                     default:
                         System.out.println("Invalid choice. Please try again.");
@@ -195,7 +196,7 @@ public class Client {
                         break;
                     case 4:
                         System.out.println("Exiting...");
-                        System.exit(0);
+                        exit_system();
                         break;
                     default:
                         System.out.println("Invalid choice. Please try again.");
@@ -218,7 +219,7 @@ public class Client {
                         break;
                     case 2:
                         System.out.println("Exiting...");
-                        System.exit(0);
+                        exit_system();
                         break;
                     default:
                         System.out.println("Invalid choice. Please try again.");
@@ -247,7 +248,6 @@ public class Client {
                     sendOpinionToUser();
                     break;
                 case 4:
-
                     cmdfollow();
                     break;
                 case 5:
@@ -256,7 +256,7 @@ public class Client {
                     break;
                 case 6:
                     System.out.println("Exiting...");
-                    System.exit(0);
+                    exit_system();
 
                 default:
                     System.out.println("Invalid choice. Please try again.");
@@ -271,6 +271,12 @@ public void checkNotification() throws InterruptedException {
     this.monitor.lock.unlock();
     Thread.sleep(100);
     this.monitor.lock.lock();
+}
+
+public void exit_system() throws RemoteException {
+        this.stub.getUsers().remove(user.getUsername());
+         System.exit(0);
+         this.stub.isDisconnected(this.user.getUsername(),this.user.getUserType());
 }
 
 public int displayMenuAndGetChoiceProposer(){
