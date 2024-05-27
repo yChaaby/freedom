@@ -14,7 +14,7 @@ import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.security.SecureRandom;
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.*;
 
 import static java.lang.Double.parseDouble;
 
@@ -430,15 +430,20 @@ public int displayMenuAndGetChoiceInfulencer(){
             }
         }while(true);
         String finalTopic = Topic;
-        new Thread(()->{for(String follower: this.user.getFollowrs()){
-            ClientMonitor tempM= null;
-            try {
-                tempM = this.stub.getClientMonitor(follower);
-                tempM.sendOpinion(this.user.getOpinion(new Topic(finalTopic)),this.monitor);
-            } catch (RemoteException e) {
-                throw new RuntimeException(e);
+        for(String follower: this.user.getFollowrs()){
+
+                new Thread(()->{
+                    try {
+                        ClientMonitor tempM = this.stub.getClientMonitor(follower);
+                        tempM.sendOpinion(this.user.getOpinion(new Topic(finalTopic)),this.monitor);
+                    } catch (RemoteException e) {
+                        throw new RuntimeException(e);
+                    }
+                }).start();
+
             }
-        }}).start();
+
+
 
     }
     public void Talk() throws RemoteException, ExecutionException, InterruptedException {
