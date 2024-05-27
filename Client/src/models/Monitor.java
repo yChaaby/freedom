@@ -1,20 +1,38 @@
 package models;
-import services.ClientMonitor;
+import java.io.Serializable;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
-import java.io.Serializable ;
-import java.util.Random;
-import java.util.Scanner;
+import java.util.Scanner ;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import services.ClientMonitor;
 
 public class Monitor extends UnicastRemoteObject implements ClientMonitor, Serializable {
 
     private User user;
     private final Lock lock = new ReentrantLock(true);
+    private String password;
 
-    public Monitor(User user) throws RemoteException{
+
+    public Monitor(User user,String pass) throws RemoteException{
     this.user=user;
+    this.password=pass;
+    }
+    public void llock(String password){
+        if(this.password!=password){
+            System.out.println("YOU DO NOT HAVE THE RIGHT TO ACCES TO THIS");
+            return;
+        }
+        this.lock.lock();
+    }
+    public void unllock(String password){
+        if(this.password!=password){
+            System.out.println("YOU DO NOT HAVE THE RIGHT TO ACCES TO THIS");
+            return;
+        }
+
+        this.lock.unlock();
+
     }
     public Monitor() throws RemoteException {}
     @Override
@@ -34,15 +52,10 @@ public class Monitor extends UnicastRemoteObject implements ClientMonitor, Seria
 
     public synchronized void sendOpinion(OpinionTopic op, ClientMonitor clientMonitor) throws RemoteException {
         this.lock.lock();
-
-       if(this.user.isFirstInteraction(op.getUser())){
-           this.user.addInfluenceDegree(op.getUser().getUsername(),Math.random());
-       }
-
-       if (!this.user.hasOpinionAbout(op.getTopic())){
-           this.user.addOpinion(new OpinionTopic(this.user,op.getTopic(),Math.random()));
-       }
-
+        if(this.user.getUserType() == UserType.CRITICAL_THINKER && op.getUser().getUserType()==UserType.INFLUENCER){
+            this.lock.unlock();
+            return;
+        }
        //  am I a CRITICAL_THINKER ?
         if(this.user.getUserType() == UserType.CRITICAL_THINKER)
         {
@@ -55,27 +68,31 @@ public class Monitor extends UnicastRemoteObject implements ClientMonitor, Seria
                 System.out.println("Proof not sufficient. Opinion rejected !");
                 this.user.addOpinion(new OpinionTopic(this.user,op.getTopic(),this.user.getOpinion(op.getTopic()).getOx()));
                 this.user.displayOpinions();
+                this.lock.unlock();
                 return;
             }
         }
-        System.out.println("Proof accepted :)");
-       double Iab = this.user.getInfluenceDegree(op.getUser());
-       double OA = op.getOx();
-       double OB = this.user.getOpinion(op.getTopic()).getOx();
-       double newOB = OB + (OA - OB ) * Iab;
-       this.user.addOpinion(new OpinionTopic(this.user,op.getTopic(),newOB));
-       System.out.println("your receive op :"+this.user.getOpinion(op.getTopic()).toString());
-       this.lock.unlock();
-    }
+
+        if(this.user.isFirstInteraction(op.getUser())){
+            this.user.addInfluenceDegree(op.getUser().getUsername(),Math.random());
+        }
+
+        if (!this.user.hasOpinionAbout(op.getTopic())){
+            this.user.addOpinion(new OpinionTopic(this.user,op.getTopic(),Math.random()));
+        }
 
 
+            double Iab = this.user.getInfluenceDegree(op.getUser());
+            double OA = op.getOx();
+            double OB = this.user.getOpinion(op.getTopic()).getOx();
+            double newOB = OB + (OA - OB ) * Iab;
+            this.user.addOpinion(new OpinionTopic(this.user,op.getTopic(),newOB));
+            System.out.println("your receive op :"+this.user.getOpinion(op.getTopic()).toString());
+            this.lock.unlock();
+        }
 
-    public void setUser(User user) throws RemoteException{
-        this.user = user;
-    }
 
     @Override
-
     public synchronized void propose(Topic t){
         this.lock.lock();
 
@@ -123,4 +140,9 @@ public class Monitor extends UnicastRemoteObject implements ClientMonitor, Seria
         this.lock.unlock();
         return answer_call;
     }
+
+    public void setUser(User user) throws RemoteException{
+        this.user = user;
+    }
 }
+
