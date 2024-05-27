@@ -34,17 +34,17 @@ public class Client {
         try {
             Client client = new Client();
             client.connect();
-            OpinionTopic c = new OpinionTopic(client.user,new Topic("is the Raja CA the best club in the world ?"),1);
+            /*OpinionTopic c = new OpinionTopic(client.user,new Topic("is the Raja CA the best club in the world ?"),1);
             client.user.addOpinion(c);
             client.user.displayOpinions();
             client.sendOpinionTo(c,"koceila1");
             client.sendOpinionTo(c,"koceila2");
             client.sendOpinionTo(c,"koceila3");
-            client.findPairsAndMakeThemTalk(c.getTopic());
-            /*Client client = new Client();
+            client.findPairsAndMakeThemTalk(c.getTopic());*/
 
-            client.connect();
-            client.showMenu();*/
+
+
+            client.showMenu();
 
         } catch (Exception e) {
             System.err.println("Client exception: " + e.toString());
@@ -199,6 +199,9 @@ public class Client {
                         this.user.displayOpinions();
                         break;
                     case 4:
+                        this.checkNotification();
+                        break;
+                    case 5:
                         System.out.println("Exiting...");
                         System.exit(0);
                         break;
@@ -273,9 +276,9 @@ public class Client {
     }
 }
 public void checkNotification() throws InterruptedException {
-    this.monitor.lock.unlock();
+    this.monitor.unllock(this.password);
     Thread.sleep(100);
-    this.monitor.lock.lock();
+    this.monitor.llock(this.password);
 }
 
 public int displayMenuAndGetChoiceProposer(){
@@ -304,9 +307,8 @@ public int displayMenuAndGetChoiceInfulencer(){
             System.out.println("1. Diffuse an opinion !");
             System.out.println("2. Add opinion !");
             System.out.println("3. Display opinion !");
-
-
-            System.out.println("4. Exit");
+            System.out.println("4. Check Update");
+            System.out.println("5. Exit");
             System.out.print("Enter your choice: ");
 
 
@@ -397,9 +399,16 @@ public int displayMenuAndGetChoiceInfulencer(){
             infsel = console.readLine("Enter a influencer: ");
             if(infs.contains(infsel)){break;}
         } while (true);
+        String finalInfsel = infsel;
+        new Thread(()->{
+            try {
+                this.stub.getClientMonitor(finalInfsel).addFollower(this.user.getUsername());
+            } catch (RemoteException e) {
+                throw new RuntimeException(e);
+            }
+            System.out.println(finalInfsel +" is followed !!");
+        }).start();
 
-        this.stub.getClientMonitor(infsel).addFollower(this.user.getUsername());
-        System.out.println(infsel+" is followed !!");
 
     }
     public void diffuserOP() throws RemoteException {
@@ -414,6 +423,7 @@ public int displayMenuAndGetChoiceInfulencer(){
             System.out.println("No opinions to diffuse ! add some opinions al hmar !");
             return;
         }
+        String Topic;
         ArrayList<String> infs = new ArrayList<String>();
         for (String topic: map1.keySet()){
             System.out.printf("Topic : %s \n",topic);
@@ -421,26 +431,25 @@ public int displayMenuAndGetChoiceInfulencer(){
         }
         do{
             java.io.Console console = System.console();
-            String Topic = console.readLine("Topic : ");
+            Topic = console.readLine("Topic : ");
             if(infs.contains(Topic)){
-                new Thread(()->{for(String follower: this.user.getFollowrs()){
-                    ClientMonitor tempM= null;
-                    try {
-                        tempM = this.stub.getClientMonitor(follower);
-                        tempM.sendOpinion(this.user.getOpinion(new Topic(Topic)),this.monitor);
-                    } catch (RemoteException e) {
-                        throw new RuntimeException(e);
-                    }
-
-                }}).start();
                 break;
             }
         }while(true);
+        String finalTopic = Topic;
+        new Thread(()->{for(String follower: this.user.getFollowrs()){
+            ClientMonitor tempM= null;
+            try {
+                tempM = this.stub.getClientMonitor(follower);
+                tempM.sendOpinion(this.user.getOpinion(new Topic(finalTopic)),this.monitor);
+            } catch (RemoteException e) {
+                throw new RuntimeException(e);
+            }
+        }}).start();
 
     }
-    public void Talk() throws RemoteException {
+    public void Talk() throws RemoteException, ExecutionException, InterruptedException {
         Scanner scanner = new Scanner(System.in);
-
         List<ClientMonitor> clientMonitors = this.stub.getClientMonitors();
          Set<String> list_topics = new HashSet<>();
         for(ClientMonitor c : clientMonitors)
@@ -458,7 +467,19 @@ public int displayMenuAndGetChoiceInfulencer(){
             return;
         }
         Topic topic=new Topic(topicId);
-        this.findPairsAndMakeThemTalk(topic);
+        new Thread(()->{
+            try {
+                this.findPairsAndMakeThemTalk(topic);
+            } catch (RemoteException e) {
+                throw new RuntimeException(e);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            } catch (ExecutionException e) {
+                throw new RuntimeException(e);
+            }
+        }).start();
+        System.out.println("d");
+
     }
     // Cette méthode ci-dessous est implementé uniquement par le CONSENSUS_FINDER :
     public void findPairsAndMakeThemTalk(Topic topic) throws RemoteException, InterruptedException, ExecutionException {
@@ -473,39 +494,54 @@ public int displayMenuAndGetChoiceInfulencer(){
 
         // Nous avons tous les users qui ont une opinion sur le topic :)
         for(ClientMonitor m : myClientMonitors) {
-                OpinionTopic opinion = m.getUser().getOpinion(topic);
+                opinionTopics.add(m.getUser().getOpinion(topic));
         }
+        System.out.println("123456");
+        for(OpinionTopic o : opinionTopics) {
+            for (OpinionTopic op : opinionTopics) {
+                if (op==null) break;
+                if (o == null || o.equals(op)) continue;
+                if ((o.getUser().getUserType() != UserType.CONSENSUS_FINDER) && (op.getUser().getUserType() != UserType.CONSENSUS_FINDER)) {
+                    // On récupére les deux monitors :
+                    ClientMonitor c1 = this.stub.getClientMonitor(o.getUser().getUsername());
+                    ClientMonitor c2 = this.stub.getClientMonitor(op.getUser().getUsername());
 
-        for(OpinionTopic o : opinionTopics)
-            for(OpinionTopic op : opinionTopics)
-            {
-                if(o == null || o.equals(op)) continue;
-                if((o.getUser().getUserType() != UserType.CONSENSUS_FINDER) && (op.getUser().getUserType() != UserType.CONSENSUS_FINDER))
-                {
-                        // On récupére les deux monitors :
-                        ClientMonitor c1 = this.stub.getClientMonitor(o.getUser().getUsername());
-                        ClientMonitor c2 = this.stub.getClientMonitor(op.getUser().getUsername());
-
-                        System.out.println("1---------> " + o.getOx() + " AND " + op.getOx());
-
-                        // Vérifions si c1 & c2 ont répondu à l'appel :)
-                        if(c1.answer_the_call() >= 0.5 && c2.answer_the_call() >= 0.5) {
-                            // Vérifions s'ils acceptent la communication :)
-                            if(c1.accepts_communication(c2.getUser().getUsername()) == 1 && c2.accepts_communication(c1.getUser().getUsername()) == 1){
-                                double OA = o.getOx();
-                                double OB = op.getOx();
-                                double averageOpinion = (OA + OB) / 2;
-                                c1.addOpinion(new OpinionTopic(c1.getUser(),topic,averageOpinion));
-                                c2.addOpinion(new OpinionTopic(c2.getUser(),topic,averageOpinion));
-                                return;
-                            }
-                            else
-                                System.out.println("Communication not accepted between " + c1.getUser().getUsername() + " and " + c2.getUser().getUsername());
-                        }
-                        else
-                            System.out.println("Call not answered by " + (c1.answer_the_call() < 0.5 ? c1.getUser().getUsername() : "") + (c2.answer_the_call() < 0.5 ? " and " + c2.getUser().getUsername() : ""));
-                    }
+                    System.out.println("1---------> " + o.getOx() + " AND " + op.getOx());
+                    ExecutorService executor = Executors.newFixedThreadPool(2);
+                    List<Callable<Double>> callables = new ArrayList<>();
+                    callables.add(() -> {
+                        return (c1.answer_the_call());
+                    });callables.add(() -> {
+                        return (c2.answer_the_call());
+                    });
+                    List<Future<Double>> futures = executor.invokeAll(callables);
+                    double answer_call_c1 = futures.get(0).get();
+                    double answer_call_c2 = futures.get(1).get();
+                    // Vérifions si c1 & c2 ont répondu à l'appel :)
+                    if (c1.answer_the_call() >= 0.5 && c2.answer_the_call() >= 0.5) {
+                        // Vérifions s'ils acceptent la communication :)
+                        ExecutorService executor2 = Executors.newFixedThreadPool(2);
+                        callables = new ArrayList<>();
+                        callables.add(() -> {
+                            return (double) c1.accepts_communication(c2.getUser().getUsername());
+                        });callables.add(() -> {
+                            return (double) c2.accepts_communication(c1.getUser().getUsername());
+                        });
+                        List<Future<Double>> futures2 = executor2.invokeAll(callables);
+                        if (futures2.get(0).get() == 1 && futures2.get(1).get() == 1) {
+                            double OA = o.getOx();
+                            double OB = op.getOx();
+                            double averageOpinion = (OA + OB) / 2;
+                            c1.addOpinion(new OpinionTopic(c1.getUser(), topic, averageOpinion));
+                            c2.addOpinion(new OpinionTopic(c2.getUser(), topic, averageOpinion));
+                            return;
+                        } else
+                            System.out.println("Communication not accepted between " + c1.getUser().getUsername() + " and " + c2.getUser().getUsername());
+                    } else
+                        System.out.println("Call not answered by " + (c1.answer_the_call() < 0.5 ? c1.getUser().getUsername() : "") + (c2.answer_the_call() < 0.5 ? " and " + c2.getUser().getUsername() : ""));
+                }
             }
+        }
     }
 
     // Cette méthode va être implementé uniquement par le Proposer :)
