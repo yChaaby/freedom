@@ -25,18 +25,7 @@ public class Client {
         try {
             Client client = new Client();
             client.connect();
-
-            //client.proposer();
-
-
-            /*client.user.displayOpinions();
-            client.sendOpinionToUser();*/
             client.showMenu();
-            //client.proposer();
-
-            //ClientMonitor receiver = (ClientMonitor) client.stub.getClientMonitor("koceila1");
-            //receiver.displayMessage("Dima Dima RAJA");
-
 
         } catch (Exception e) {
             System.err.println("Client exception: " + e.toString());
