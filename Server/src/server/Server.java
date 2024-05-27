@@ -1,7 +1,9 @@
 package server;
+
+import models.UserType;
 import services.ClientMonitor;
 import services.UserRemote;
-import java.io.Serializable;
+
 import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -15,16 +17,17 @@ public class Server implements UserRemote{
         users = new HashMap<>();
     }
     @Override
-    public void direBonjour(int a) throws RemoteException {
-        System.out.println("Bonjour "+a);
-    }
-    @Override
     public void addListener(ClientMonitor c) throws RemoteException {
         if(users.containsKey(c.getUser().getUsername())){
             throw new InternalError("the user already exists");
         }
         users.put(c.getUser().getUsername(),c);
-        System.out.println(c.getUser().getUsername()+" is an "+c.getUser().getUserType() +" connected !");
+        System.out.println(c.getUser().getUsername() +" is an " +c.getUser().getUserType() +" connected !");
+    }
+
+    public void exit_system(String username,UserType type) throws RemoteException {
+        users.remove(username);
+        System.out.println(username + " is an " + type + " disconnected !");
     }
    @Override
     public ClientMonitor getClientMonitor(String username) throws RemoteException {
@@ -38,6 +41,10 @@ public class Server implements UserRemote{
         return users;
     }
 
+    @Override
+    public void isDisconnected(String name, UserType type) throws RemoteException{
+        System.out.println(name + " is an " + type + " disconnected !");
+    }
     public List<ClientMonitor> getClientMonitors() throws RemoteException {
         List<ClientMonitor> myListMonitors = new ArrayList<>();
         for(Map.Entry<String,ClientMonitor> entry : users.entrySet())

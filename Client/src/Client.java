@@ -4,6 +4,9 @@ C'est l'application dans laquelle un user va se connecter et executer certain fo
  */
 
 
+import models.*;
+import services.ClientMonitor;
+import services.*;
 
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
@@ -12,15 +15,7 @@ import java.rmi.registry.Registry;
 import java.security.SecureRandom;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
-import java.util.stream.Collectors;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import models.*;
-import services.ClientMonitor;
-import services.UserRemote;
+
 import static java.lang.Double.parseDouble;
 
 
@@ -30,6 +25,7 @@ public class Client {
     public Monitor monitor;
     public UserRemote stub;
     private String password;
+
     public static void main(String[] args)  {
         try {
             Client client = new Client();
@@ -51,21 +47,20 @@ public class Client {
             e.printStackTrace();
         }
     }
-
-
     private void sendOpinionToUser() throws RemoteException {
         Scanner scanner = new Scanner(System.in);
-        HashMap<String, ClientMonitor> map= (HashMap<String, ClientMonitor>) this.stub.getUsers();
+        HashMap<String, ClientMonitor> map= (HashMap<String, ClientMonitor>) stub.getUsers();
         HashMap<String, OpinionTopic> map1 = this.user.getOpinions();
         System.out.println("Connected users");
         for (String username: map.keySet()){
-            System.out.println(username+" is connected");
+            if(!username.equals(user.getUsername()))
+                System.out.println(username + " is connected !");
         }
         System.out.print("Enter username to send opinion to: ");
         String username = scanner.nextLine();
         System.out.println("Your topics");
         for (String topic: map1.keySet()){
-            System.out.println(topic+" is connected");
+            System.out.println(topic+" is connected !");
         }
         System.out.print("Enter topic ID: ");
         String topicId = scanner.nextLine();
@@ -73,9 +68,7 @@ public class Client {
         sendOpinionTo(this.user.getOpinion(new Topic(topicId)), username);
     }
     public void sendOpinionTo(OpinionTopic op, String username) throws RemoteException {
-        ClientMonitor receiver = (ClientMonitor) this.stub.getClientMonitor(username);
-        System.out.println("taya");
-
+        ClientMonitor receiver = (ClientMonitor) stub.getClientMonitor(username);
         new Thread(()->{
             try {
                 receiver.sendOpinion(op,this.monitor);
@@ -94,11 +87,7 @@ public class Client {
         OpinionTopic c = new OpinionTopic(this.user,new Topic(topicid), ox);
         this.user.addOpinion(c);
     }
-    /*public void addOpinion(){
-        Scanner scanner = new Scanner(System.in);
-        System.out.print("Enter opinion (ex: 0.5) / 1) : ");
-        float opinion = scanner.nextFloat();
-    }*/
+
     public Client() throws RemoteException {
         String username;
         Date birthday;
@@ -171,6 +160,7 @@ public class Client {
                         break;
                     case 2:
                         System.out.println("Exiting...");
+                        stub.exit_system(user.getUsername(),user.getUserType());
                         System.exit(0);
                         break;
                     default:
@@ -203,6 +193,7 @@ public class Client {
                         break;
                     case 5:
                         System.out.println("Exiting...");
+                        stub.exit_system(user.getUsername(),user.getUserType());
                         System.exit(0);
                         break;
                     default:
@@ -227,6 +218,7 @@ public class Client {
                         break;
                     case 2:
                         System.out.println("Exiting...");
+                        stub.exit_system(user.getUsername(),user.getUserType());
                         System.exit(0);
                         break;
                     default:
@@ -256,7 +248,6 @@ public class Client {
                     sendOpinionToUser();
                     break;
                 case 4:
-
                     cmdfollow();
                     break;
                 case 5:
@@ -265,6 +256,7 @@ public class Client {
                     break;
                 case 6:
                     System.out.println("Exiting...");
+                    stub.exit_system(user.getUsername(),user.getUserType());
                     System.exit(0);
 
                 default:
@@ -368,7 +360,7 @@ public int displayMenuAndGetChoiceInfulencer(){
     }
     public void connect() throws RemoteException, NotBoundException {
         Registry registry = LocateRegistry.getRegistry("127.0.0.1",12345);
-        this.stub = (UserRemote) registry.lookup("Server");
+        stub = (UserRemote) registry.lookup("Server");
         stub.addListener(monitor);
     }
     public void cmdfollow() throws RemoteException {
@@ -378,7 +370,7 @@ public int displayMenuAndGetChoiceInfulencer(){
             System.err.println("You can't follow !");
             return;
         }
-        HashMap<String, ClientMonitor> map= (HashMap<String, ClientMonitor>) this.stub.getUsers();
+        HashMap<String, ClientMonitor> map= (HashMap<String, ClientMonitor>) stub.getUsers();
         HashMap<String, OpinionTopic> map1 = this.user.getOpinions();
         System.out.println("Connected Influencers : ");
         ArrayList<String> infs = new ArrayList<String>();
@@ -490,7 +482,7 @@ public int displayMenuAndGetChoiceInfulencer(){
             return;
         }
         // J'ai récupéré tous les monitors existants dans le serveur :)
-        List<ClientMonitor> myClientMonitors = this.stub.getClientMonitors();
+        List<ClientMonitor> myClientMonitors = stub.getClientMonitors();
         List<OpinionTopic> opinionTopics = new ArrayList<>();
 
         // Nous avons tous les users qui ont une opinion sur le topic :)
@@ -560,7 +552,7 @@ public int displayMenuAndGetChoiceInfulencer(){
         String topic = scanner.nextLine();
         new Thread(() -> {
             try {
-                HashMap<String, ClientMonitor> map = (HashMap<String, ClientMonitor>) this.stub.getUsers();
+                HashMap<String, ClientMonitor> map = (HashMap<String, ClientMonitor>) stub.getUsers();
 
                 // Création d'une liste de CompletableFuture pour chaque proposition
                 List<CompletableFuture<Void>> futures = map.entrySet().stream().filter(user-> {
