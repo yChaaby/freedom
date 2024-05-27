@@ -223,6 +223,7 @@ public class Client {
                 switch (choice) {
                     case 1:
                         Talk();
+                        System.out.println("dfgh");
                         break;
                     case 2:
                         System.out.println("Exiting...");
@@ -334,9 +335,9 @@ public int displayMenuAndGetChoiceInfulencer(){
         }
         if (scanner.hasNextInt()) {
             choice = scanner.nextInt();
-            scanner.nextLine(); // consume newline
+            scanner.nextLine();
         } else {
-            scanner.nextLine(); // consume the invalid input
+            scanner.nextLine();
         }
 
         return choice;
@@ -478,7 +479,7 @@ public int displayMenuAndGetChoiceInfulencer(){
                 throw new RuntimeException(e);
             }
         }).start();
-        System.out.println("d");
+
 
     }
     // Cette méthode ci-dessous est implementé uniquement par le CONSENSUS_FINDER :
@@ -518,17 +519,20 @@ public int displayMenuAndGetChoiceInfulencer(){
                     double answer_call_c1 = futures.get(0).get();
                     double answer_call_c2 = futures.get(1).get();
                     // Vérifions si c1 & c2 ont répondu à l'appel :)
-                    if (c1.answer_the_call() >= 0.5 && c2.answer_the_call() >= 0.5) {
+                    if (answer_call_c1 >= 0.5 && answer_call_c2 >= 0.5) {
+                        futures.clear();
                         // Vérifions s'ils acceptent la communication :)
                         ExecutorService executor2 = Executors.newFixedThreadPool(2);
-                        callables = new ArrayList<>();
-                        callables.add(() -> {
+                        List<Callable<Double>> callables1 = new ArrayList<>();
+                        callables1.add(() -> {
                             return (double) c1.accepts_communication(c2.getUser().getUsername());
-                        });callables.add(() -> {
+                        });callables1.add(() -> {
                             return (double) c2.accepts_communication(c1.getUser().getUsername());
                         });
                         List<Future<Double>> futures2 = executor2.invokeAll(callables);
+
                         if (futures2.get(0).get() == 1 && futures2.get(1).get() == 1) {
+                            futures2.clear();
                             double OA = o.getOx();
                             double OB = op.getOx();
                             double averageOpinion = (OA + OB) / 2;
@@ -538,10 +542,11 @@ public int displayMenuAndGetChoiceInfulencer(){
                         } else
                             System.out.println("Communication not accepted between " + c1.getUser().getUsername() + " and " + c2.getUser().getUsername());
                     } else
-                        System.out.println("Call not answered by " + (c1.answer_the_call() < 0.5 ? c1.getUser().getUsername() : "") + (c2.answer_the_call() < 0.5 ? " and " + c2.getUser().getUsername() : ""));
+                        System.out.println("Call not answered by " + (answer_call_c1 < 0.5 ? c1.getUser().getUsername() : "") + (answer_call_c2 < 0.5 ? " and " + c2.getUser().getUsername() : ""));
                 }
             }
         }
+    System.exit(0);
     }
 
     // Cette méthode va être implementé uniquement par le Proposer :)

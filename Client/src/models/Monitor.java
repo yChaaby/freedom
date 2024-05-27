@@ -59,10 +59,8 @@ public class Monitor extends UnicastRemoteObject implements ClientMonitor, Seria
        //  am I a CRITICAL_THINKER ?
         if(this.user.getUserType() == UserType.CRITICAL_THINKER)
         {
-            this.user.displayOpinions();
-            System.out.println("A proof? : ");
             double proof = clientMonitor.requestProof();
-            System.out.println("Proof requested: " + proof);
+            System.out.println("Proof requested on "+op.getTopic().getIdTopic()+" : " + proof);
             if(proof < 0.70)
             {
                 System.out.println("Proof not sufficient. Opinion rejected !");
@@ -115,9 +113,8 @@ public class Monitor extends UnicastRemoteObject implements ClientMonitor, Seria
 
     public double requestProof(){
         this.lock.lock();
-        Scanner scanner = new Scanner(System.in);
-        System.err.print("What's your proof? : ");
-        double proof = Double.parseDouble(scanner.nextLine());
+        java.io.Console console = System.console();
+        double proof = Double.parseDouble(console.readLine("the proof : "));
         this.lock.unlock();
         return proof;
     }
