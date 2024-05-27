@@ -2,6 +2,7 @@ import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
+import java.security.SecureRandom;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
@@ -21,6 +22,7 @@ public class Client {
     public User user;
     public Monitor monitor;
     public UserRemote stub;
+    private String password;
     public static void main(String[] args)  {
         try {
             Client client = new Client();
@@ -118,10 +120,12 @@ public class Client {
                 break;
         }
         this.user = new User(username,birthday, userType);
-        this.monitor = new Monitor(user);
+        this.password = Client.passwordMonitor();
+        this.monitor = new Monitor(user,password);
 
     }
     public  void showMenu(){
+        this.monitor.llock(this.password);
         if (this.user.getUserType() == UserType.REGULAR_USER){
             showMenuRegularUser();
         }
@@ -137,9 +141,11 @@ public class Client {
         else if(this.user.getUserType() ==UserType.CONSENSUS_FINDER){
             ShowMenuConsesusFinder();
         }
+        this.monitor.unllock(this.password);
     }
 
     public void ShowMenuProposer() {
+
         while (true) {
             System.out.println("\n--- Menu ---");
             int choice = displayMenuAndGetChoiceProposer();
@@ -275,6 +281,10 @@ public class Client {
                 case 5:
                     System.out.println("Exiting...");
                     System.exit(0);
+                case 6:
+                    checkNotification();
+                    System.out.println("checked !");
+                    break;
                 default:
                     System.out.println("Invalid choice. Please try again.");
             }
@@ -284,6 +294,10 @@ public class Client {
         }
     }
 }
+public void checkNotification(){
+    this.monitor.lock.unlock();
+}
+
 public int displayMenuAndGetChoiceProposer(){
     Scanner scanner = new Scanner(System.in);
     int choice = -1;
@@ -378,6 +392,7 @@ public int displayMenuAndGetChoiceInfulencer(){
         System.out.println("3. Send Opinion to User");
         System.out.println("4. follow some one ");
         System.out.println("5. Exit");
+        System.out.println("5. checkNotification()");
         System.out.print("Enter your choice: ");
 
     }
@@ -454,13 +469,14 @@ public int displayMenuAndGetChoiceInfulencer(){
         }while(true);
 
     }
-    private void Talk() throws RemoteException {
+    public void Talk() throws RemoteException {
         Scanner scanner = new Scanner(System.in);
 
         List<ClientMonitor> clientMonitors = this.stub.getClientMonitors();
          Set<String> list_topics = new HashSet<>();
         for(ClientMonitor c : clientMonitors)
-            list_topics.addAll(c.getUser().getOpinions().keySet());
+            if (c != null && c.getUser() != null && c.getUser().getOpinions() != null)
+                list_topics.addAll(c.getUser().getOpinions().keySet());
 
         System.out.println("Your topics :");
         for(String topic : list_topics)
@@ -468,7 +484,12 @@ public int displayMenuAndGetChoiceInfulencer(){
 
         System.out.print("Enter topic ID: ");
         String topicId = scanner.nextLine();
-        this.findPairsAndMakeThemTalk(new Topic(topicId));
+        if (topicId == null || topicId.trim().isEmpty()) {
+            System.out.println("Invalid topic ID.");
+            return;
+        }
+        Topic topic=new Topic(topicId);
+        this.findPairsAndMakeThemTalk(topic);
     }
     // Cette méthode ci-dessous est implementé uniquement par le CONSENSUS_FINDER :
     public void findPairsAndMakeThemTalk(Topic topic) throws RemoteException {
@@ -483,7 +504,7 @@ public int displayMenuAndGetChoiceInfulencer(){
 
         // Nous avons tous les users qui ont une opinion sur le topic :)
         for(ClientMonitor m : myClientMonitors) {
-            opinionTopics.add(m.getUser().getOpinion(topic));
+                OpinionTopic opinion = m.getUser().getOpinion(topic);
         }
 
         for(OpinionTopic o : opinionTopics)
@@ -569,6 +590,16 @@ public int displayMenuAndGetChoiceInfulencer(){
             }
         }).start();
         System.out.println("done.");
+    }
+    public static String passwordMonitor(){
+        String CHARACTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()-_=+<>?";
+        SecureRandom RANDOM = new SecureRandom();
+        int passwordLength = 12;
+        StringBuilder password = new StringBuilder(passwordLength);
+        for (int i = 0; i < passwordLength; i++) {
+            password.append(CHARACTERS.charAt(RANDOM.nextInt(CHARACTERS.length())));
+        }
+        return password.toString();
     }
 
 

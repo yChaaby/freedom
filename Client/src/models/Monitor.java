@@ -11,10 +11,28 @@ import java.util.concurrent.locks.ReentrantLock;
 public class Monitor extends UnicastRemoteObject implements ClientMonitor, Serializable {
 
     private User user;
-    private final Lock lock = new ReentrantLock();
+    public final Lock lock = new ReentrantLock();
+    private String password;
 
-    public Monitor(User user) throws RemoteException{
+    public Monitor(User user,String pass) throws RemoteException{
     this.user=user;
+    this.password=pass;
+    }
+    public void llock(String password){
+        if(this.password!=password){
+            System.out.println("YOU DO NOT HAVE THE RIGHT TO ACCES TO THIS");
+            return;
+        }
+        this.lock.lock();
+    }
+    public void unllock(String password){
+        if(this.password!=password){
+            System.out.println("YOU DO NOT HAVE THE RIGHT TO ACCES TO THIS");
+            return;
+        }
+        System.out.println("je suis la");
+        this.lock.unlock();
+        System.out.println("je enenen");
     }
     public Monitor() throws RemoteException {}
     @Override
