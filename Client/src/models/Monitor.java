@@ -30,9 +30,9 @@ public class Monitor extends UnicastRemoteObject implements ClientMonitor, Seria
             System.out.println("YOU DO NOT HAVE THE RIGHT TO ACCES TO THIS");
             return;
         }
-        System.out.println("je suis la");
+
         this.lock.unlock();
-        System.out.println("je enenen");
+
     }
     public Monitor() throws RemoteException {}
     @Override
@@ -52,17 +52,12 @@ public class Monitor extends UnicastRemoteObject implements ClientMonitor, Seria
 
     public synchronized void sendOpinion(OpinionTopic op, ClientMonitor clientMonitor) throws RemoteException {
         this.lock.lock();
-
-       if(this.user.isFirstInteraction(op.getUser())){
-           this.user.addInfluenceDegree(op.getUser().getUsername(),Math.random());
-       }
-
-       if (!this.user.hasOpinionAbout(op.getTopic())){
-           this.user.addOpinion(new OpinionTopic(this.user,op.getTopic(),Math.random()));
-       }
-
+        if(this.user.getUserType() == UserType.CRITICAL_THINKER && op.getUser().getUserType()==UserType.INFLUENCER){
+            this.lock.unlock();
+            return;
+        }
        //  am I a CRITICAL_THINKER ?
-        if(this.user.getUserType() == UserType.CRITICAL_THINKER && ((op.getUser().getUserType() != UserType.INFLUENCER) || (op.getUser().getUserType() != UserType.PROPOSER)))
+        if(this.user.getUserType() == UserType.CRITICAL_THINKER)
         {
             this.user.displayOpinions();
             System.out.println("A proof? : ");
@@ -73,28 +68,31 @@ public class Monitor extends UnicastRemoteObject implements ClientMonitor, Seria
                 System.out.println("Proof not sufficient. Opinion rejected !");
                 this.user.addOpinion(new OpinionTopic(this.user,op.getTopic(),this.user.getOpinion(op.getTopic()).getOx()));
                 this.user.displayOpinions();
+                this.lock.unlock();
                 return;
             }
         }
-        if(this.user.getUserType() == UserType.CRITICAL_THINKER)
-            System.out.println("Proof accepted :)");
-        if(this.user.getUserType() == UserType.CRITICAL_THINKER && ((op.getUser().getUserType() != UserType.INFLUENCER) || (op.getUser().getUserType() != UserType.PROPOSER)))
-        {
+
+        if(this.user.isFirstInteraction(op.getUser())){
+            this.user.addInfluenceDegree(op.getUser().getUsername(),Math.random());
+        }
+
+        if (!this.user.hasOpinionAbout(op.getTopic())){
+            this.user.addOpinion(new OpinionTopic(this.user,op.getTopic(),Math.random()));
+        }
+
+
             double Iab = this.user.getInfluenceDegree(op.getUser());
             double OA = op.getOx();
             double OB = this.user.getOpinion(op.getTopic()).getOx();
             double newOB = OB + (OA - OB ) * Iab;
             this.user.addOpinion(new OpinionTopic(this.user,op.getTopic(),newOB));
             System.out.println("your receive op :"+this.user.getOpinion(op.getTopic()).toString());
+            this.lock.unlock();
         }
-       this.lock.unlock();
-    }
-    public void setUser(User user) throws RemoteException{
-        this.user = user;
-    }
+
 
     @Override
-
     public synchronized void propose(Topic t){
         this.lock.lock();
 
@@ -133,4 +131,9 @@ public class Monitor extends UnicastRemoteObject implements ClientMonitor, Seria
         System.err.print(this.user.getUsername() + ", Would you like to chat with " + username + "?" + "[0 to refuse or 1 to accept ] :");
         return (int) Double.parseDouble(scanner.nextLine());
     }
+
+    public void setUser(User user) throws RemoteException{
+        this.user = user;
+    }
 }
+
