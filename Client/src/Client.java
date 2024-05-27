@@ -1,9 +1,38 @@
-/*
-La Class client !
-C'est l'application dans laquelle un user va se connecter et executer certain fonction donner par le menu
+/**
+ * La classe Client représente un client dans le système RMI (Remote Method Invocation).
+ * Elle gère les interactions de l'utilisateur, y compris l'envoi et la réception d'opinions,
+ * la proposition de nouveaux sujets, et la gestion des abonnés.
+ *
+ * Champs:
+ * - User user: L'utilisateur courant.
+ * - Monitor monitor: Le moniteur associé à l'utilisateur.
+ * - UserRemote stub: Le stub pour interagir avec le serveur distant.
+ * - String password: Le mot de passe pour accéder aux fonctionnalités sécurisées.
+ *
+ * Méthodes:
+ * - public static void main(String[] args): Le point d'entrée du programme client.
+ * - private void sendOpinionToUser(): Envoie une opinion à un autre utilisateur.
+ * - public void sendOpinionTo(OpinionTopic op, String username): Envoie une opinion à un utilisateur spécifié.
+ * - public void addOp(): Ajoute une opinion à l'utilisateur courant.
+ * - public Client(): Constructeur qui initialise l'utilisateur, son moniteur et son mot de passe.
+ * - public void showMenu(): Affiche le menu principal en fonction du type d'utilisateur.
+ * - public void ShowMenuProposer(): Affiche le menu pour un utilisateur de type PROPOSER.
+ * - public void ShowMenuInfluencer(): Affiche le menu pour un utilisateur de type INFLUENCER.
+ * - public void ShowMenuConsesusFinder(): Affiche le menu pour un utilisateur de type CONSENSUS_FINDER.
+ * - private void showMenuRegularUser(): Affiche le menu pour un utilisateur de type REGULAR_USER.
+ * - public void checkNotification(): Vérifie les notifications pour l'utilisateur.
+ * - public int displayMenuAndGetChoiceProposer(): Affiche le menu et obtient le choix pour un utilisateur de type PROPOSER.
+ * - public int displayMenuAndGetChoiceInfulencer(): Affiche le menu et obtient le choix pour un utilisateur de type INFLUENCER.
+ * - public int displayMenuAndGetChoiceConsensusFinder(): Affiche le menu et obtient le choix pour un utilisateur de type CONSENSUS_FINDER.
+ * - public int displayMenuAndGetChoiceRegularUser(): Affiche le menu et obtient le choix pour un utilisateur de type REGULAR_USER.
+ * - public void connect(): Connecte le client au serveur RMI.
+ * - public void cmdfollow(): Permet à un utilisateur de suivre un influenceur.
+ * - public void diffuserOP(): Diffuse une opinion à tous les abonnés.
+ * - public void Talk(): Permet à un CONSENSUS_FINDER de trouver des paires et de les faire discuter.
+ * - public void findPairsAndMakeThemTalk(Topic topic): Trouve des paires d'utilisateurs pour discuter d'un sujet spécifique.
+ * - public void proposer(): Propose un nouveau sujet à tous les utilisateurs.
+ * - public static String passwordMonitor(): Génère un mot de passe aléatoire pour le moniteur.
  */
-
-
 import models.*;
 import services.ClientMonitor;
 import services.*;

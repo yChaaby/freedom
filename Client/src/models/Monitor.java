@@ -1,11 +1,41 @@
+/**
+ * La classe Monitor est une implémentation d'objet distant qui sert de moniteur client dans un système distribué.
+ * Elle implémente l'interface ClientMonitor et utilise Java RMI pour l'invocation de méthodes à distance. La classe
+ * garantit la sécurité des threads grâce à l'utilisation de ReentrantLock et effectue diverses opérations liées aux utilisateurs.
+ *
+ * Champs:
+ * - User user: L'utilisateur associé à ce moniteur.
+ * - Lock lock: Un verrou réentrant pour garantir la sécurité des threads.
+ * - String password: Un mot de passe pour le contrôle d'accès à certaines méthodes.
+ *
+ * Constructeurs:
+ * - Monitor(User user, String pass): Initialise le moniteur avec un utilisateur et un mot de passe.
+ * - Monitor(): Constructeur par défaut pour l'instanciation d'objet distant.
+ *
+ * Méthodes:
+ * - void llock(String password): Verrouille le moniteur si le mot de passe est correct.
+ * - void unllock(String password): Déverrouille le moniteur si le mot de passe est correct.
+ * - User getUser(): Retourne l'utilisateur associé à ce moniteur.
+ * - synchronized void addFollower(String username): Ajoute un abonné à l'utilisateur si celui-ci est un influenceur.
+ * - synchronized void sendOpinion(OpinionTopic op, ClientMonitor clientMonitor): Traite une opinion et met à jour les opinions de l'utilisateur.
+ * - synchronized void propose(Topic t): Invite l'utilisateur à donner son avis sur un sujet.
+ * - synchronized void displayMessage(String msg): Affiche un message à l'utilisateur.
+ * - void addOpinion(OpinionTopic op): Ajoute une opinion aux opinions de l'utilisateur.
+ * - double requestProof(): Invite l'utilisateur à fournir une preuve et retourne la valeur fournie.
+ * - double answer_the_call(): Invite l'utilisateur à répondre à un appel et retourne la réponse de l'utilisateur.
+ * - int accepts_communication(String username): Invite l'utilisateur à accepter ou refuser la communication avec un autre utilisateur.
+ * - void setUser(User user): Définit l'utilisateur associé à ce moniteur.
+ */
 package models;
+
+import services.ClientMonitor;
+
 import java.io.Serializable;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
-import java.util.Scanner ;
+import java.util.Scanner;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
-import services.ClientMonitor;
 
 public class Monitor extends UnicastRemoteObject implements ClientMonitor, Serializable {
 

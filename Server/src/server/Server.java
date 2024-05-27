@@ -1,3 +1,21 @@
+
+/**
+ * La classe Server implémente l'interface UserRemote pour gérer les utilisateurs et leurs moniteurs dans un système RMI.
+ *
+ * Champs:
+ * - Map<String, ClientMonitor> users: Une carte des utilisateurs connectés et leurs moniteurs respectifs.
+ *
+ * Constructeur:
+ * - Server(): Initialise la carte des utilisateurs.
+ *
+ * Méthodes:
+ * - void addListener(ClientMonitor c): Ajoute un moniteur de client à la liste des utilisateurs connectés.
+ * - void exit_system(String username, UserType type): Supprime un utilisateur de la liste des utilisateurs connectés.
+ * - ClientMonitor getClientMonitor(String username): Retourne le moniteur de client associé à un nom d'utilisateur donné.
+ * - Map<String, ClientMonitor> getUsers(): Retourne la carte des utilisateurs connectés.
+ * - void isDisconnected(String name, UserType type): Affiche un message indiquant qu'un utilisateur est déconnecté.
+ * - List<ClientMonitor> getClientMonitors(): Retourne une liste de tous les moniteurs de clients.
+ */
 package server;
 
 import models.UserType;

@@ -1,4 +1,9 @@
-
+/**
+ * La classe Main initialise et lance le serveur RMI, en créant un registre pour les objets distants et en liant l'objet serveur à ce registre.
+ *
+ * Méthodes:
+ * - public static void main(String[] args): Le point d'entrée du programme. Il configure le serveur RMI et le rend prêt pour les invocations distantes.
+ */
 import services.UserRemote;
 import server.Server;
 import java.rmi.registry.LocateRegistry;
